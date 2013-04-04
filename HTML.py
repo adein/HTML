@@ -20,6 +20,12 @@
 #  - 0.2 Changed a few code conventions
 #  - 0.3 Added rate limiting
 #  - 0.4 Added support for POST web forms
+#
+#  To-do:
+#  - Implement/fix case-insensitivity on FindFirst/NextTag
+#  - Add GetTag(text, tag_name, starting_index)
+#  - Add GetNearestMatch()
+#  - Add StripTags()
 
 
 # Python imports
@@ -78,12 +84,16 @@ class HTML(HTMLParser.HTMLParser):
 
     ## The flat list of Tag objects that were parsed from the document/URL.
     parsed_data_ = None
+    
     ## The top-most/root Tag object for a document/URL that all tags are a children of.
     root_ = None
+    
     ## The current Tag object that's being parsed.
     current_tag_ = None
+    
     ## The number of Tag objects in the document/URL.
     number_of_tags_ = None
+    
     ## Rate limiting variables
     last_request_time_ = None                    # date/time of last HTTP request
     rate_limit_counter_time_ = None              # date/time for rate limit periods
@@ -113,11 +123,14 @@ class HTML(HTMLParser.HTMLParser):
                 if (self.debug_):
                     self.debug_output_.write("HTML: Parsing the file: %s\n" % (str(file_name)))
                     self.debug_output_.flush()
+                    
                 # Open the file
                 file = open(file_name)
+                
                 # Read the markup text
                 data = file.read()
-                # Parse it
+                
+                # Parse the markup text
                 return self.Parse(data)
             else:
                 if (self.debug_):
@@ -146,37 +159,27 @@ class HTML(HTMLParser.HTMLParser):
                     self.debug_output_.write("HTML: Parsing the url: %s\n" % (str(url)))
                     self.debug_output_.flush()
 
-                # Check rate limiting: time between requests
+                # Check rate limiting
+                if (not self.CheckRateLimiting(wait_for_rate_limiting)):
+                    return False
+
+                # Store the time when the request is made
                 current_time = datetime.datetime.now()
-                if (self.last_request_time_ is not None and ((current_time - self.last_request_time_) < datetime.timedelta(seconds=self.minimum_time_between_requests_))):
-                    if (wait_for_rate_limiting):
-                        time.sleep(self.minimum_time_between_requests_)
-                    else:
-                        return False
-
-                # Check rate limiting: requests per minute
-                current_time = datetime.datetime.now()      # Get current time
-                if (self.rate_limit_count_ >= self.requests_per_minute_):
-                    if (wait_for_rate_limiting):
-                        rate_delay = 60 - (current_time - self.rate_limit_counter_time_).seconds
-                        if (rate_delay > 0):
-                            time.sleep(rate_delay)
-                        else:
-                            time.sleep(self.minimum_time_between_requests_)
-                    else:
-                        return False
-
+                
                 # Open the url
                 file = urllib.urlopen(url)
+                
                 # Read the markup text
                 data = file.read()
+                
                 # Update rate limit info
                 self.last_request_time_ = datetime.datetime.now()
                 if ((current_time - self.rate_limit_counter_time_) > datetime.timedelta(minutes=1)):
                     self.rate_limit_counter_time_ = self.last_request_time_
                     self.rate_limit_count_ = 0
                 self.rate_limit_count_ += 1
-                # Parse it
+                
+                # Parse the markup text
                 return self.Parse(data)
             else:
                 if (self.debug_):
@@ -205,26 +208,14 @@ class HTML(HTMLParser.HTMLParser):
                     self.debug_output_.write("HTML: Parsing the url with POST form: %s\n" % (str(url)))
                     self.debug_output_.flush()
 
-                # Check rate limiting: time between requests
+                # Check rate limiting
+                if (not self.CheckRateLimiting(wait_for_rate_limiting)):
+                    return False
+
+                # Store the time when the request is made
                 current_time = datetime.datetime.now()
-                if (self.last_request_time_ is not None and ((current_time - self.last_request_time_) < datetime.timedelta(seconds=self.minimum_time_between_requests_))):
-                    if (wait_for_rate_limiting):
-                        time.sleep(self.minimum_time_between_requests_)
-                    else:
-                        return False
 
-                # Check rate limiting: requests per minute
-                current_time = datetime.datetime.now()      # Get current time
-                if (self.rate_limit_count_ >= self.requests_per_minute_):
-                    if (wait_for_rate_limiting):
-                        rate_delay = 60 - (current_time - self.rate_limit_counter_time_).seconds
-                        if (rate_delay > 0):
-                            time.sleep(rate_delay)
-                        else:
-                            time.sleep(self.minimum_time_between_requests_)
-                    else:
-                        return False
-
+                # Make the POST request to the url
                 r = requests.post(url, data=form_data)
                 data = r.text
 
@@ -234,7 +225,8 @@ class HTML(HTMLParser.HTMLParser):
                     self.rate_limit_counter_time_ = self.last_request_time_
                     self.rate_limit_count_ = 0
                 self.rate_limit_count_ += 1
-                # Parse it
+                
+                # Parse the markup text
                 return self.Parse(data)
             else:
                 if (self.debug_):
@@ -245,6 +237,36 @@ class HTML(HTMLParser.HTMLParser):
                 self.debug_output_.write("HTML: Error reading the URL " + str(e) + "\n")
                 self.debug_output_.flush()
         return False
+
+    ## Check for rate limiting.
+    #
+    #  Check the rate limiting and optionally pause if required to avoid exceeding the rate limit.
+    #
+    #  @param wait_for_rate_limiting True if the function should block for rate limiting (default True).
+    #  @return True if the rate limit was handled properly, False if the rate is exceeded and we didn't wait.
+    def CheckRateLimiting(wait_for_rate_limiting=True):
+        # Check rate limiting: time between requests
+        current_time = datetime.datetime.now()
+        if (self.last_request_time_ is not None and ((current_time - self.last_request_time_) < datetime.timedelta(seconds=self.minimum_time_between_requests_))):
+            if (wait_for_rate_limiting):
+                time.sleep(self.minimum_time_between_requests_)
+            else:
+                return False
+
+        # Check rate limiting: requests per minute
+        current_time = datetime.datetime.now()      # Get current time
+        if (self.rate_limit_count_ >= self.requests_per_minute_):
+            if (wait_for_rate_limiting):
+                rate_delay = 60 - (current_time - self.rate_limit_counter_time_).seconds
+                if (rate_delay > 0):
+                    time.sleep(rate_delay)
+                else:
+                    time.sleep(self.minimum_time_between_requests_)
+            else:
+                return False
+                
+        # Rate limiting not needed, or it was and we waited the required time
+        return True
 
     ## Parse HTML markup text.
     #
@@ -258,13 +280,16 @@ class HTML(HTMLParser.HTMLParser):
             self.current_tag_ = self.root_
             self.number_of_tags_ = 0
             self.reset()
+            
             # Fix any issues before we call the parser
-            # Feed our data to the parser
             if (markup_text is not None):
                 markup_text = markup_text.replace('</>','</a>')
+                # Feed our data to the parser
                 self.feed(markup_text)
+                
             # Close the document/http connection
             self.close()
+            
             # Store the root tag to the list of HTML tags
             self.StoreTag(self.root_)
             self.number_of_tags_ = len(self.parsed_data_)
@@ -274,6 +299,7 @@ class HTML(HTMLParser.HTMLParser):
                 #for i in range(0, self.number_of_tags_):
                 #       self.debug_output_.write(str(self.parsed_data_[i]) + "\n")
                 self.debug_output_.flush()
+                
             return True
         except HTMLParser.HTMLParseError, e:
             if (self.debug_):
