@@ -31,15 +31,28 @@ import time
 import requests
 
 
-## Describes an HTML tag
+## Class that describes an HTML tag.  Essentially a C-style struct.
 class Tag():
+    ## The name/type of a tag.  e.g., 'table'
     name_ = None
+    ## A list of attribute tuples.  e.g., [('bgcolor', '#FFFFFF')]
     attributes_ = None
+    ## The content of the tag.
     data_ = None
+    ## The parent Tag for this tag
     parent_ = None
+    ## A list of Tag children objects
     children_ = None
 
     ## Constructor
+    #
+    #  Create a Tag object with the user-specified properties.
+    #
+    #  @param name the name/type of the tag (default None).
+    #  @param attributes the list of attribute tuples of the tag (default None).
+    #  @param data the content of the tag (default None).
+    #  @param parent the parent Tag object of this tag (default None).
+    #  @param children the list of children Tag objects (default None).
     def __init__(self, name=None, attributes=None, data=None, parent=None, children=None):
         self.name_ = name
         self.attributes_ = attributes
@@ -63,16 +76,23 @@ class HTML(HTMLParser.HTMLParser):
     ## Minimum time delay between requests in seconds
     minimum_time_between_requests_ = 0
 
-    ## Local variables
+    ## The flat list of Tag objects that were parsed from the document/URL.
     parsed_data_ = None
+    ## The top-most/root Tag object for a document/URL that all tags are a children of.
     root_ = None
+    ## The current Tag object that's being parsed.
     current_tag_ = None
+    ## The number of Tag objects in the document/URL.
     number_of_tags_ = None
+    ## Rate limiting variables
     last_request_time_ = None                    # date/time of last HTTP request
     rate_limit_counter_time_ = None              # date/time for rate limit periods
     rate_limit_count_ = 0                        # number of HTTP requests during this rate limit period
 
     ## Constructor
+    #
+    #  Create an instance of the HTML class, prepare the HTMLParser parent class for processing, 
+    #  and reset the root Tag, tag counter, and rate limiting.
     def __init__(self):
         self.parsed_data_ = []
         self.root_ = Tag(name='root', children=[])
@@ -82,7 +102,9 @@ class HTML(HTMLParser.HTMLParser):
         self.rate_limit_counter_time_ = datetime.datetime.now()
 
     ## Parse an HTML file
-    #  @param file_name HTML file to parse
+    #
+    #  @param file_name HTML file to parse (default None).
+    #  @return True if the file was parsed succesfully.
     def ParseFile(self, file_name=None):
         file = None
         try:
@@ -110,8 +132,11 @@ class HTML(HTMLParser.HTMLParser):
                 file.close()
         return False
 
-    ## Parse a URL
-    #  @param url URL to parse
+    ## Download and parse a URL
+    #
+    #  @param url URL to parse (default None).
+    #  @param wait_for_rate_limiting True if the function should block for rate limiting (default True).
+    #  @return True if the URL was parsed succesfully.
     def ParseURL(self, url=None, wait_for_rate_limiting=True):
         file = None
         try:
@@ -166,9 +191,12 @@ class HTML(HTMLParser.HTMLParser):
                 file.close()
         return False
 
-    ## Parse a URL with a POST form
-    #  @param url URL to parse
-    #  @param form_data dictionary containing name/value pairs of the web form data
+    ## Download and parse a URL using a POST form
+    #
+    #  @param url URL to parse (default None).
+    #  @param form_data a dictionary containing name/value pairs of the web form data (default None).
+    #  @param wait_for_rate_limiting True if the function should block for rate limiting (default True).
+    #  @return True if the URL was parsed succesfully.
     def ParseURLWithPostForm(self, url=None, form_data=None, wait_for_rate_limiting=True):
         try:
             # If a url is specified, open it
@@ -218,8 +246,10 @@ class HTML(HTMLParser.HTMLParser):
                 self.debug_output_.flush()
         return False
 
-    ## Parse HTML markup text
-    #  @param markup_text The HTML markup text to parse
+    ## Parse HTML markup text.
+    #
+    #  @param markup_text The HTML markup text to parse (default None).
+    #  @return True if the markup was parsed succesfully.
     def Parse(self, markup_text=None):
         try:
             # Start with the root of the document
@@ -256,8 +286,9 @@ class HTML(HTMLParser.HTMLParser):
                 self.debug_output_.flush()
             return False
 
-    ## Store the current tag in the list parsed_data_
-    # @param tag The HTML tag
+    ## Store the current tag in the flat list parsed_data_
+    #
+    # @param tag the Tag object to store in the flat list, including it's children Tags.
     def StoreTag(self, tag):
         if (tag is not None):
             # Store the tag data to the list of tags
@@ -268,8 +299,11 @@ class HTML(HTMLParser.HTMLParser):
                     self.StoreTag(tag.children_[i])
 
     ## Handle the start of an HTML tag
-    #  @param tag The HTML tag
-    #  @param attrs A list of the tag's attributes
+    #
+    #  Event handler for when the start of a tag is encountered.
+    #
+    #  @param tag The HTML tag.
+    #  @param attrs A list of the tag's attributes.
     def handle_starttag(self, tag, attrs):
         #if (self.debug_):
         #       self.debug_output_.write("HTML: start tag - " + tag + " / " + str(attrs) + "\n")
@@ -281,7 +315,10 @@ class HTML(HTMLParser.HTMLParser):
         self.current_tag_ = new_tag
 
     ## Handle the end of an HTML tag
-    #  @param tag The HTML tag
+    #
+    #  Event handler for when the end of a tag is encountered.
+    #
+    #  @param tag The HTML tag.
     def handle_endtag(self, tag):
         #if (self.debug_):
         #       self.debug_output_.write("HTML: end tag - " + tag + "\n")
@@ -291,8 +328,11 @@ class HTML(HTMLParser.HTMLParser):
         self.current_tag_ = self.current_tag_.parent_
 
     ## Handle a start/end HTML tag
-    #  @param tag The HTML tag
-    #  @param attrs A list of the tag's attributes
+    #
+    #  Event handler for when a tag that is both the start and end of a tag is encountered.
+    #
+    #  @param tag The HTML tag.
+    #  @param attrs A list of the tag's attributes.
     def handle_startendtag(self, tag, attrs):
         #if (self.debug_):
         #       self.debug_output_.write("HTML: start/end tag - " + tag + " / " + str(attrs) + "\n")
@@ -307,7 +347,10 @@ class HTML(HTMLParser.HTMLParser):
         self.current_tag_.children_.append(new_tag)
 
     ## Handle the data of an HTML tag
-    #  @param data The tag's data
+    #
+    #  Event handler for when the content of a tag is encountered.
+    #
+    #  @param data The tag's data.
     def handle_data(self, data):
         #if (self.debug_):
         #       self.debug_output_.write("HTML: data - " + data + "\n")
@@ -321,7 +364,10 @@ class HTML(HTMLParser.HTMLParser):
                 self.current_tag_.data_ += data
 
     ## Handle a comment
-    #  @param data The comment
+    #
+    #  Event handler for when a comment is encountered.
+    #
+    #  @param data The comment.
     def handle_comment(self, data):
         #if (self.debug_):
         #       self.debug_output_.write("HTML: comment - " + data + "\n")
@@ -336,7 +382,10 @@ class HTML(HTMLParser.HTMLParser):
                 self.current_tag_.children_.append(new_tag)
 
     ## Handle a declaration
-    #  @param decl The declaration
+    #
+    #  Event handler for when a declaration is encountered.
+    #
+    #  @param decl The declaration.
     def handle_decl(self, decl):
         #if (self.debug_):
         #       self.debug_output_.write("HTML: declaration - " + decl + "\n")
@@ -351,7 +400,10 @@ class HTML(HTMLParser.HTMLParser):
                 self.current_tag_.children_.append(new_tag)
 
     ## Handle an unknown declaration
-    #  @param data The declaration
+    #
+    #  Event handler for when an unknown declaration is encountered.
+    #
+    #  @param data The declaration.
     def unknown_decl(self, data):
         #if (self.debug_):
         #       self.debug_output_.write("HTML: declaration - " + data + "\n")
@@ -366,19 +418,21 @@ class HTML(HTMLParser.HTMLParser):
                 self.current_tag_.children_.append(new_tag)
 
     ## Find the first matching tag by type, attributes, and content
-    #  @param tag_type The type of tag to search for. e.g. 'a' or 'div'
-    #  @param tag_attributes The tag attributes to search for. e.g. [('name', 'somename'), ('type', 'text/css')]
-    #  @param tag_data The tag content to search for. e.g. "Title"
-    #  @return The index in the list of the first matching tag, -1 if no match found
+    #
+    #  @param tag_type the type of tag to search for. e.g. 'a' or 'div'.
+    #  @param tag_attributes the tag attributes to search for. e.g. [('name', 'somename'), ('type', 'text/css')] (default None).
+    #  @param tag_data the tag content to search for. e.g. "Title" (default None).
+    #  @return the index in the flat list of the first matching tag, -1 if no match found.
     def FindFirstTag(self, tag_type, tag_attributes=None, tag_data=None):
         return self.FindNextTag(tag_type, tag_attributes, tag_data)
 
     ## Find next matching tag
-    #  @param index The starting point in the list of tags to start looking
-    #  @param tag_type The type of tag to search for. e.g. 'A' or 'DIV'
-    #  @param tag_attributes The tag attributes to search for. e.g. [('name', 'somename'), ('type', 'text/css')]
-    #  @param tag_data The tag content to search for. e.g. "Title"
-    #  @return The index in the list of the first matching tag, -1 if no match found
+    #
+    #  @param tag_type the type of tag to search for. e.g. 'A' or 'DIV'.
+    #  @param tag_attributes the tag attributes to search for. e.g. [('name', 'somename'), ('type', 'text/css')] (default None).
+    #  @param tag_data the tag content to search for. e.g. "Title" (default None).
+    #  @param index the starting point in the flat list of tags to start looking (default 0).
+    #  @return the index in the list of the matching tag, -1 if no match found.
     def FindNextTag(self, tag_type, tag_attributes=None, tag_data=None, index=0):
         if (tag_type is not None):
             for i in range(index, self.number_of_tags_):
@@ -399,8 +453,9 @@ class HTML(HTMLParser.HTMLParser):
         return -1
 
     ## Get the specified tag
-    #  @param index the index of the tag to get
-    #  @return A list containing the tag type, nested list with tag attributes, and the tag content
+    #
+    #  @param index the index of the tag to get.
+    #  @return A list containing: [the tag type, nested list with tag attribute tuples, and the tag content], or None on error.
     def GetTag(self, index):
         if (index >= 0 and index < len(self.parsed_data_)):
             return self.parsed_data_[index]
@@ -408,8 +463,9 @@ class HTML(HTMLParser.HTMLParser):
             return None
 
     ## Replace special characters with HTML escape codes
-    #  @param text Parameter description
-    #  @return Return value description
+    #
+    #  @param text the text to replace symbols with escape codes (default None).
+    #  @return the text with the symbols replaced with escape codes.
     def EscapeText(self, text=None):
         if (text is not None):
             text = text.replace("&", "&amp;")
@@ -420,8 +476,9 @@ class HTML(HTMLParser.HTMLParser):
         return text;
 
     ## Replace HTML escape codes with special characters
-    #  @param text Parameter description
-    #  @return Return value description
+    #
+    #  @param text the text to replace escape codes with symbols (default None).
+    #  @return the text with the escape codes replaced with symbols.
     def UnescapeText(self, text=None):
         if (text is not None):
             text = text.replace("&amp;", "&")
