@@ -3,9 +3,9 @@
 #
 #  @author Aaron DeGrow
 #
-#  @date Mar 27th, 2012
+#  @date Apr 7th, 2013
 #
-#  @version 0.4
+#  @version 0.5
 #
 #  Packages(s) required:
 #  - sys
@@ -14,12 +14,14 @@
 #  - datetime
 #  - time
 #  - requests
+#  - cgi
 #
 #  Version History:
 #  - 0.1 First implementation
 #  - 0.2 Changed a few code conventions
 #  - 0.3 Added rate limiting
 #  - 0.4 Added support for POST web forms
+#  - 0.5 Fixes to EscapeText
 #
 #  To-do:
 #  - Implement/fix case-insensitivity on FindFirst/NextTag
@@ -35,6 +37,7 @@ import urllib
 import datetime
 import time
 import requests
+import cgi
 
 
 ## Class that describes an HTML tag.  Essentially a C-style struct.
@@ -244,7 +247,7 @@ class HTML(HTMLParser.HTMLParser):
     #
     #  @param wait_for_rate_limiting True if the function should block for rate limiting (default True).
     #  @return True if the rate limit was handled properly, False if the rate is exceeded and we didn't wait.
-    def CheckRateLimiting(wait_for_rate_limiting=True):
+    def CheckRateLimiting(self, wait_for_rate_limiting=True):
         # Check rate limiting: time between requests
         current_time = datetime.datetime.now()
         if (self.last_request_time_ is not None and ((current_time - self.last_request_time_) < datetime.timedelta(seconds=self.minimum_time_between_requests_))):
@@ -493,13 +496,10 @@ class HTML(HTMLParser.HTMLParser):
     #  @param text the text to replace symbols with escape codes (default None).
     #  @return the text with the symbols replaced with escape codes.
     def EscapeText(self, text=None):
-        if (text is not None):
-            text = text.replace("&", "&amp;")
-            text = text.replace("\"", "&quot;")
-            text = text.replace("'", "&#039;")
-            text = text.replace("<", "&lt;")
-            text = text.replace(">", "&gt;")
-        return text;
+        if (text is None):
+            return None
+        text = cgi.escape(text, quote=True).encode('ascii', 'xmlcharrefreplace')
+        return text.replace("'", "&#039;")
 
     ## Replace HTML escape codes with special characters
     #
@@ -507,11 +507,11 @@ class HTML(HTMLParser.HTMLParser):
     #  @return the text with the escape codes replaced with symbols.
     def UnescapeText(self, text=None):
         if (text is not None):
-            text = text.replace("&amp;", "&")
             text = text.replace("&quot;", "\"")
             text = text.replace("&#039;", "'")
             text = text.replace("&lt;", "<")
             text = text.replace("&gt;", ">")
             text = text.replace("&nbsp;", " ")
+            text = text.replace("&amp;", "&")
         return text;
 

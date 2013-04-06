@@ -3,22 +3,31 @@
 #
 #  @author Aaron DeGrow
 #
-#  @date Mar 27th, 2012
+#  @date Apr 7th, 2013
 #
-#  @version 0.1
+#  @version 0.3
 #
 #  Packages(s) required:
 #  - HTML
+#  - datetime
+#  - time
 #
 #  Other requirements:
 #  - pytest
 #
 #  Version History:
 #  - 0.1 First implementation
+#  - 0.2 Added more test coverage
+#  - 0.3 Added rate limit tests
 
 
 # Python imports
+import datetime
+import time
+
+# Other imports
 import HTML
+
 
 ## Test the HTML class
 class TestHTML:
@@ -135,7 +144,7 @@ class TestHTML:
         assert self.h.current_tag_.attributes_ == attrs
         assert self.h.current_tag_.data_ == expected_data
 
-    def test_handle_data_data_with_only_carriage_return_line_newline(self):
+    def test_handle_data_data_with_only_carriage_return_newline(self):
         tag = "mytag"
         attrs = [('id', 'lga')]
         data = '\r\n'
@@ -514,6 +523,95 @@ class TestHTML:
         assert self.h.parsed_data_[2][1] == attrs2
         assert self.h.parsed_data_[2][2] == tag_data2
 
+    def test_CheckRateLimiting_not_limited(self):
+        wait = False
+        expected_result = True
+        current_time = datetime.datetime.now()
+        self.h.minimum_time_between_requests_ = 30
+        self.h.requests_per_minute_ = 5
+        self.h.last_request_time_ = current_time - datetime.timedelta(seconds=35)
+        self.h.rate_limit_count_ = 3
+        self.h.rate_limit_counter_time_ = current_time - datetime.timedelta(seconds=5)
+        start_time = time.time()
+        assert self.h.CheckRateLimiting(wait) == expected_result
+        elapsed_time = time.time() - start_time
+        assert elapsed_time < 1
+
+    def test_CheckRateLimiting_limited_between_requests_wait(self):
+        wait = True
+        expected_result = True
+        current_time = datetime.datetime.now()
+        self.h.minimum_time_between_requests_ = 30
+        self.h.requests_per_minute_ = 5
+        self.h.last_request_time_ = current_time - datetime.timedelta(seconds=20)
+        self.h.rate_limit_count_ = 3
+        self.h.rate_limit_counter_time_ = current_time - datetime.timedelta(seconds=5)
+        start_time = time.time()
+        assert self.h.CheckRateLimiting(wait) == expected_result
+        elapsed_time = time.time() - start_time
+        assert elapsed_time > 30
+        assert elapsed_time < 31
+
+    def test_CheckRateLimiting_limited_between_requests_no_wait(self):
+        wait = False
+        expected_result = False
+        current_time = datetime.datetime.now()
+        self.h.minimum_time_between_requests_ = 30
+        self.h.requests_per_minute_ = 5
+        self.h.last_request_time_ = current_time - datetime.timedelta(seconds=20)
+        self.h.rate_limit_count_ = 3
+        self.h.rate_limit_counter_time_ = current_time - datetime.timedelta(seconds=5)
+        start_time = time.time()
+        assert self.h.CheckRateLimiting(wait) == expected_result
+        elapsed_time = time.time() - start_time
+        assert elapsed_time > 0
+        assert elapsed_time < 1
+
+    def test_CheckRateLimiting_limited_per_minute_wait_remaining_time(self):
+        wait = True
+        expected_result = True
+        current_time = datetime.datetime.now()
+        self.h.minimum_time_between_requests_ = 30
+        self.h.requests_per_minute_ = 5
+        self.h.last_request_time_ = current_time - datetime.timedelta(seconds=35)
+        self.h.rate_limit_count_ = 5
+        self.h.rate_limit_counter_time_ = current_time - datetime.timedelta(seconds=5)
+        start_time = time.time()
+        assert self.h.CheckRateLimiting(wait) == expected_result
+        elapsed_time = time.time() - start_time
+        assert elapsed_time > 54
+        assert elapsed_time < 56
+
+    def test_CheckRateLimiting_limited_per_minute_wait_between_time(self):
+        wait = True
+        expected_result = True
+        current_time = datetime.datetime.now()
+        self.h.minimum_time_between_requests_ = 30
+        self.h.requests_per_minute_ = 5
+        self.h.last_request_time_ = current_time - datetime.timedelta(seconds=35)
+        self.h.rate_limit_count_ = 5
+        self.h.rate_limit_counter_time_ = current_time - datetime.timedelta(seconds=61)
+        start_time = time.time()
+        assert self.h.CheckRateLimiting(wait) == expected_result
+        elapsed_time = time.time() - start_time
+        assert elapsed_time > 30
+        assert elapsed_time < 31
+
+    def test_CheckRateLimiting_limited_per_minute_no_wait(self):
+        wait = False
+        expected_result = False
+        current_time = datetime.datetime.now()
+        self.h.minimum_time_between_requests_ = 30
+        self.h.requests_per_minute_ = 5
+        self.h.last_request_time_ = current_time - datetime.timedelta(seconds=35)
+        self.h.rate_limit_count_ = 5
+        self.h.rate_limit_counter_time_ = current_time - datetime.timedelta(seconds=5)
+        start_time = time.time()
+        assert self.h.CheckRateLimiting(wait) == expected_result
+        elapsed_time = time.time() - start_time
+        assert elapsed_time > 0
+        assert elapsed_time < 1
+
     def test_Parse_markup_as_none(self):
         text = None
         expected_result = True
@@ -551,19 +649,24 @@ class TestHTML:
         assert self.h.parsed_data_[2][2] == expected_tag_data2
         assert self.h.parsed_data_[3][0] == expected_tag_name3
 
-    def test_Parse_bad_html(self):
-        text = "<P><A NAME='anchor'</a></P>"
-        expected_result = False
+    def test_Parse_html_with_endtag_as_only_slash(self):
+        text = "<a href=\"test\">test</><br/>"
+        expected_result = True
         expected_root_tag = 'root'
-        expected_root_children = []
-        expected_tag_count = 1
+        expected_root_children = 2
+        expected_tag_count = 3
+        expected_tag_name1 = "a"
+        expected_tag_data1 = "test"
+        expected_tag_name2 = "br"
         assert self.h.Parse(text) == expected_result
-        #assert len(self.h.parsed_data_) == expected_tag_count
-        #assert self.h.parsed_data_[0][0] == expected_root_tag
         assert self.h.root_.name_ == expected_root_tag
-        assert self.h.root_.children_ == expected_root_children
-        assert self.h.current_tag_.name_ == expected_root_tag
+        assert len(self.h.root_.children_) == expected_root_children
         assert self.h.number_of_tags_ == expected_tag_count
+        assert len(self.h.parsed_data_) == expected_tag_count
+        assert self.h.parsed_data_[0][0] == expected_root_tag
+        assert self.h.parsed_data_[1][0] == expected_tag_name1
+        assert self.h.parsed_data_[1][2] == expected_tag_data1
+        assert self.h.parsed_data_[2][0] == expected_tag_name2
 
     def test_ParseFile_html_file_as_input(self):
         filename = "test.html"
