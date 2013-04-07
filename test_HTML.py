@@ -5,7 +5,7 @@
 #
 #  @date Apr 7th, 2013
 #
-#  @version 0.3
+#  @version 0.4
 #
 #  Packages(s) required:
 #  - HTML
@@ -19,6 +19,7 @@
 #  - 0.1 First implementation
 #  - 0.2 Added more test coverage
 #  - 0.3 Added rate limit tests
+#  - 0.4 Added tests for ParseURLWithPostForm
 
 
 # Python imports
@@ -698,7 +699,36 @@ class TestHTML:
         expected_result = False
         assert self.h.ParseURL(url) == expected_result
 
-# FindFirstTag(type, attr, data)
+    def test_ParseURLWithPostForm_for_ncaa_game_data(self):
+        formdata = {
+            "sport_code" : "MBB",
+            "division" : "1",
+            "conf_id" : "-1",
+            "academic_year" : "2013",
+            "schedule_date" : "2013-11-09",
+        }
+        url = "http://stats.ncaa.org/team/schedule_list"
+        expected_result = True
+        assert self.h.ParseURLWithPostForm(url, formdata) == expected_result
+
+    def test_ParseURLWithPostForm_non_existant_url(self):
+        url = "http://asdf1974jgladslf.com"
+        formdata = {}
+        expected_result = False
+        assert self.h.ParseURLWithPostForm(url, formdata) == expected_result
+
+    def test_ParseURLWithPostForm_none_as_url(self):
+        url = None
+        formdata = {}
+        expected_result = False
+        assert self.h.ParseURLWithPostForm(url, formdata) == expected_result
+
+    def test_ParseURLWithPostForm_none_as_post_data(self):
+        url = "http://www.google.com"
+        formdata = None
+        expected_result = False
+        assert self.h.ParseURLWithPostForm(url, formdata) == expected_result
+
     def test_FindFirstTag_all_inputs_none(self):
         type = None
         attr = None
