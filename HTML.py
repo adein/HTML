@@ -119,7 +119,7 @@ class HTML(HTMLParser.HTMLParser):
     #  @param file_name HTML file to parse (default None).
     #  @return True if the file was parsed succesfully.
     def ParseFile(self, file_name=None):
-        file = None
+        html_file = None
         try:
             # If a file is specified, open it
             if (file_name is not None and len(file_name) > 0):
@@ -128,10 +128,10 @@ class HTML(HTMLParser.HTMLParser):
                     self.debug_output_.flush()
                     
                 # Open the file
-                file = open(file_name)
+                html_file = open(file_name)
                 
                 # Read the markup text
-                data = file.read()
+                data = html_file.read()
                 
                 # Parse the markup text
                 return self.Parse(data)
@@ -144,8 +144,8 @@ class HTML(HTMLParser.HTMLParser):
                 self.debug_output_.write("HTML: Error reading the file " + str(e) + "\n")
                 self.debug_output_.flush()
         finally:
-            if (file is not None):
-                file.close()
+            if (html_file is not None):
+                html_file.close()
         return False
 
     ## Download and parse a URL
@@ -154,7 +154,7 @@ class HTML(HTMLParser.HTMLParser):
     #  @param wait_for_rate_limiting True if the function should block for rate limiting (default True).
     #  @return True if the URL was parsed succesfully.
     def ParseURL(self, url=None, wait_for_rate_limiting=True):
-        file = None
+        html_file = None
         try:
             # If a url is specified, open it
             if (url is not None and len(url) > 0):
@@ -170,10 +170,10 @@ class HTML(HTMLParser.HTMLParser):
                 current_time = datetime.datetime.now()
                 
                 # Open the url
-                file = urllib.urlopen(url)
+                html_file = urllib.urlopen(url)
                 
                 # Read the markup text
-                data = file.read()
+                data = html_file.read()
                 
                 # Update rate limit info
                 self.last_request_time_ = datetime.datetime.now()
@@ -193,8 +193,8 @@ class HTML(HTMLParser.HTMLParser):
                 self.debug_output_.write("HTML: Error reading the URL " + str(e) + "\n")
                 self.debug_output_.flush()
         finally:
-            if (file is not None):
-                file.close()
+            if (html_file is not None):
+                html_file.close()
         return False
 
     ## Download and parse a URL using a POST form
