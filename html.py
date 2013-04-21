@@ -1,4 +1,4 @@
-## @package HTML
+## @package html
 #  This module includes functions for processing HTML files.
 #
 #  @author Aaron DeGrow
