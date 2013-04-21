@@ -22,14 +22,14 @@
 #  - 0.2 Changed a few code conventions
 #  - 0.3 Added rate limiting
 #  - 0.4 Added support for POST web forms
-#  - 0.5 Fixes to EscapeText
+#  - 0.5 Fixes to escape_text
 #  - 0.6 Changes to align with Google Python style guidelines
 #
 #  To-do:
-#  - Implement/fix case-insensitivity on FindFirst/NextTag
-#  - Add GetTag(text, tag_name, starting_index)
-#  - Add GetNearestMatch()
-#  - Add StripTags()
+#  - Implement/fix case-insensitivity on find_first/next_tag
+#  - Add get_tag(text, tag_name, starting_index)
+#  - Add get_nearest_match()
+#  - Add strip_tags()
 
 
 # Python imports
@@ -130,7 +130,7 @@ class HTML(HTMLParser.HTMLParser):
     #
     #  @param file_name HTML file to parse.
     #  @return True if the file was parsed succesfully.
-    def ParseFile(self, file_name):
+    def parse_file(self, file_name):
         html_file = None
         # If a file is specified, open it
         if file_name and len(file_name) > 0:
@@ -149,7 +149,7 @@ class HTML(HTMLParser.HTMLParser):
                 raise Error("Error opening the file")
 
             # Parse the markup text
-            return self.Parse(data)
+            return self.parse(data)
         else:
             if self.debug_:
                 self.debug_output_.write("HTML: No file specified\n")
@@ -161,7 +161,7 @@ class HTML(HTMLParser.HTMLParser):
     #  @param url URL to parse.
     #  @param wait_for_rate_limiting True if the function should block for rate limiting (default True).
     #  @return True if the URL was parsed succesfully.
-    def ParseURL(self, url, wait_for_rate_limiting=True):
+    def parse_url(self, url, wait_for_rate_limiting=True):
         html_file = None
         # If a url is specified, open it
         if url and len(url) > 0:
@@ -170,7 +170,7 @@ class HTML(HTMLParser.HTMLParser):
                 self.debug_output_.flush()
 
             # Check rate limiting
-            if not self.CheckRateLimiting(wait_for_rate_limiting):
+            if not self.check_rate_limiting(wait_for_rate_limiting):
                 return False
 
             # Store the time when the request is made
@@ -195,7 +195,7 @@ class HTML(HTMLParser.HTMLParser):
             self.rate_limit_count_ += 1
             
             # Parse the markup text
-            return self.Parse(data)
+            return self.parse(data)
         else:
             if self.debug_:
                 self.debug_output_.write("HTML: No URL specified\n")
@@ -208,7 +208,7 @@ class HTML(HTMLParser.HTMLParser):
     #  @param form_data a dictionary containing name/value pairs of the web form data.
     #  @param wait_for_rate_limiting True if the function should block for rate limiting (default True).
     #  @return True if the URL was parsed succesfully.
-    def ParseURLWithPostForm(self, url, form_data, wait_for_rate_limiting=True):
+    def parse_url_with_post_form(self, url, form_data, wait_for_rate_limiting=True):
         # If a url is specified, open it
         if url and len(url) > 0 and form_data:
             if self.debug_:
@@ -216,7 +216,7 @@ class HTML(HTMLParser.HTMLParser):
                 self.debug_output_.flush()
 
             # Check rate limiting
-            if not self.CheckRateLimiting(wait_for_rate_limiting):
+            if not self.check_rate_limiting(wait_for_rate_limiting):
                 return False
 
             # Store the time when the request is made
@@ -255,7 +255,7 @@ class HTML(HTMLParser.HTMLParser):
             self.rate_limit_count_ += 1
             
             # Parse the markup text
-            return self.Parse(data)
+            return self.parse(data)
         else:
             if self.debug_:
                 self.debug_output_.write("HTML: No URL or form data specified\n")
@@ -268,7 +268,7 @@ class HTML(HTMLParser.HTMLParser):
     #
     #  @param wait_for_rate_limiting True if the function should block for rate limiting (default True).
     #  @return True if the rate limit was handled properly, False if the rate is exceeded and we didn't wait.
-    def CheckRateLimiting(self, wait_for_rate_limiting=True):
+    def check_rate_limiting(self, wait_for_rate_limiting=True):
         # Check rate limiting: time between requests
         current_time = datetime.datetime.now()
         if self.last_request_time_ and (current_time - self.last_request_time_) < datetime.timedelta(seconds=self.minimum_time_between_requests_):
@@ -296,7 +296,7 @@ class HTML(HTMLParser.HTMLParser):
     #
     #  @param markup_text The HTML markup text to parse.
     #  @return True if the markup was parsed succesfully.
-    def Parse(self, markup_text):
+    def parse(self, markup_text):
         # Start with the root of the document
         self.parsed_data_ = []
         self.root_ = Tag(name='root', children=[])
@@ -316,7 +316,7 @@ class HTML(HTMLParser.HTMLParser):
                     self.debug_output_.flush()
                 raise Error("Error parsing HTML")
         # Store the root tag to the list of HTML tags
-        self.StoreTag(self.root_)
+        self.store_tag(self.root_)
         self.number_of_tags_ = len(self.parsed_data_)
         if self.debug_:
             self.debug_output_.write("HTML: finished parsing. Position - %s\n" % str(self.getpos()))
@@ -330,14 +330,14 @@ class HTML(HTMLParser.HTMLParser):
     ## Store the current tag in the flat list parsed_data_
     #
     # @param tag the Tag object to store in the flat list, including it's children Tags.
-    def StoreTag(self, tag):
+    def store_tag(self, tag):
         if tag:
             # Store the tag data to the list of tags
             self.parsed_data_.append([tag.name_, tag.attributes_, tag.data_])
             # If the tag has children, recursively call this function to store them as well
             if tag.children_ and len(tag.children_) > 0:
                 for i in range(0, len(tag.children_)):
-                    self.StoreTag(tag.children_[i])
+                    self.store_tag(tag.children_[i])
 
     ## Handle the start of an HTML tag
     #
@@ -463,8 +463,8 @@ class HTML(HTMLParser.HTMLParser):
     #  @param tag_attributes the tag attributes to search for. e.g. [('name', 'somename'), ('type', 'text/css')] (default None).
     #  @param tag_data the tag content to search for. e.g. "Title" (default None).
     #  @return the index in the flat list of the first matching tag, -1 if no match found.
-    def FindFirstTag(self, tag_type, tag_attributes=None, tag_data=None):
-        return self.FindNextTag(tag_type, tag_attributes, tag_data)
+    def find_first_tag(self, tag_type, tag_attributes=None, tag_data=None):
+        return self.find_next_tag(tag_type, tag_attributes, tag_data)
 
     ## Find next matching tag
     #
@@ -473,7 +473,7 @@ class HTML(HTMLParser.HTMLParser):
     #  @param tag_data the tag content to search for. e.g. "Title" (default None).
     #  @param index the starting point in the flat list of tags to start looking (default 0).
     #  @return the index in the list of the matching tag, -1 if no match found.
-    def FindNextTag(self, tag_type, tag_attributes=None, tag_data=None, index=0):
+    def find_next_tag(self, tag_type, tag_attributes=None, tag_data=None, index=0):
         if tag_type:
             for i in range(index, self.number_of_tags_):
                 data = self.parsed_data_[i]
@@ -496,7 +496,7 @@ class HTML(HTMLParser.HTMLParser):
     #
     #  @param index the index of the tag to get.
     #  @return A list containing: [the tag type, nested list with tag attribute tuples, and the tag content], or None on error.
-    def GetTag(self, index):
+    def get_tag(self, index):
         if index >= 0 and index < len(self.parsed_data_):
             return self.parsed_data_[index]
         else:
@@ -506,7 +506,7 @@ class HTML(HTMLParser.HTMLParser):
     #
     #  @param text the text to replace symbols with escape codes.
     #  @return the text with the symbols replaced with escape codes.
-    def EscapeText(self, text):
+    def escape_text(self, text):
         if not text:
             return None
         text = cgi.escape(text, quote=True).encode('ascii', 'xmlcharrefreplace')
@@ -516,7 +516,7 @@ class HTML(HTMLParser.HTMLParser):
     #
     #  @param text the text to replace escape codes with symbols.
     #  @return the text with the escape codes replaced with symbols.
-    def UnescapeText(self, text):
+    def unescape_text(self, text):
         if text:
             text = text.replace("&quot;", "\"")
             text = text.replace("&#039;", "'")

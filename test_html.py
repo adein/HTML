@@ -20,7 +20,7 @@
 #  - 0.1 First implementation
 #  - 0.2 Added more test coverage
 #  - 0.3 Added rate limit tests
-#  - 0.4 Added tests for ParseURLWithPostForm
+#  - 0.4 Added tests for parse_url_with_post_form
 
 
 # Python imports
@@ -40,35 +40,35 @@ class TestHtml:
         self.h = html.HTML()
         self.h.debug_ = True
 
-    def test_EscapeText_all_symbols(self):
+    def test_escape_text_all_symbols(self):
         text = "& \" ' < >"
         expected_result = "&amp; &quot; &#039; &lt; &gt;"
-        assert self.h.EscapeText(text) == expected_result
+        assert self.h.escape_text(text) == expected_result
 
-    def test_EscapeText_all_escape_codes(self):
+    def test_escape_text_all_escape_codes(self):
         text = "&amp; &quot; &#039; &lt; &gt;"
         expected_result = "&amp; &quot; &#039; &lt; &gt;"
-        assert self.h.EscapeText(text) == expected_result
+        assert self.h.escape_text(text) == expected_result
 
-    def test_EscapeText_none_as_input(self):
+    def test_escape_text_none_as_input(self):
         text = None
         expected_result = None
-        assert self.h.EscapeText(text) == expected_result
+        assert self.h.escape_text(text) == expected_result
 
-    def test_UnescapeText_all_escaped_symbols(self):
+    def test_unescape_text_all_escaped_symbols(self):
         text = "&amp; &quot; &#039; &lt; &gt;"
         expected_result = "& \" ' < >"
-        assert self.h.UnescapeText(text) == expected_result
+        assert self.h.unescape_text(text) == expected_result
 
-    def test_UnescapeText_all_symbols(self):
+    def test_unescape_text_all_symbols(self):
         text = "& \" ' < >"
         expected_result = "& \" ' < >"
-        assert self.h.UnescapeText(text) == expected_result
+        assert self.h.unescape_text(text) == expected_result
 
-    def test_UnescapeText_none_as_input(self):
+    def test_unescape_text_none_as_input(self):
         text = None
         expected_result = None
-        assert self.h.UnescapeText(text) == expected_result
+        assert self.h.unescape_text(text) == expected_result
 
     def test_handle_starttag_empty_tag_named_mytag(self):
         tag = "mytag"
@@ -478,26 +478,26 @@ class TestHtml:
         assert self.h.current_tag_.parent_ == expected_root_parent
         assert len(self.h.current_tag_.children_) == 0
 
-    def test_StoreTag_tag_with_data_but_no_children(self):
+    def test_store_tag_tag_with_data_but_no_children(self):
         tag_name = "mytag"
         attrs = [('id', 'lga')]
         tag_children = None
         tag_data = "my data"
         tag = html.Tag(name=tag_name, attributes=attrs, children=tag_children, data=tag_data)
-        self.h.StoreTag(tag)
+        self.h.store_tag(tag)
         self.h.number_of_tags_ = len(self.h.parsed_data_)
         assert len(self.h.parsed_data_) == 1
         assert self.h.parsed_data_[0][0] == tag_name
         assert self.h.parsed_data_[0][1] == attrs
         assert self.h.parsed_data_[0][2] == tag_data
 
-    def test_StoreTag_tag_as_none(self):
+    def test_store_tag_tag_as_none(self):
         tag = None
-        self.h.StoreTag(tag)
+        self.h.store_tag(tag)
         self.h.number_of_tags_ = len(self.h.parsed_data_)
         assert len(self.h.parsed_data_) == 0
 
-    def test_StoreTag_tag_with_data_and_children(self):
+    def test_store_tag_tag_with_data_and_children(self):
         tag_name1 = "mytag1"
         attrs1 = [('id', 'lga')]
         tag_children1 = None
@@ -513,7 +513,7 @@ class TestHtml:
         tag_children3 = [tag1, tag2]
         tag_data3 = "my data3"
         tag3 = html.Tag(name=tag_name3, attributes=attrs3, children=tag_children3, data=tag_data3)
-        self.h.StoreTag(tag3)
+        self.h.store_tag(tag3)
         self.h.number_of_tags_ = len(self.h.parsed_data_)
         assert len(self.h.parsed_data_) == 3
         assert self.h.parsed_data_[0][0] == tag_name3
@@ -526,7 +526,7 @@ class TestHtml:
         assert self.h.parsed_data_[2][1] == attrs2
         assert self.h.parsed_data_[2][2] == tag_data2
 
-    def test_CheckRateLimiting_not_limited(self):
+    def test_check_rate_limiting_not_limited(self):
         wait = False
         expected_result = True
         current_time = datetime.datetime.now()
@@ -536,11 +536,11 @@ class TestHtml:
         self.h.rate_limit_count_ = 3
         self.h.rate_limit_counter_time_ = current_time - datetime.timedelta(seconds=5)
         start_time = time.time()
-        assert self.h.CheckRateLimiting(wait) == expected_result
+        assert self.h.check_rate_limiting(wait) == expected_result
         elapsed_time = time.time() - start_time
         assert elapsed_time < 1
 
-    def test_CheckRateLimiting_limited_between_requests_wait(self):
+    def test_check_rate_limiting_limited_between_requests_wait(self):
         wait = True
         expected_result = True
         current_time = datetime.datetime.now()
@@ -550,12 +550,12 @@ class TestHtml:
         self.h.rate_limit_count_ = 3
         self.h.rate_limit_counter_time_ = current_time - datetime.timedelta(seconds=5)
         start_time = time.time()
-        assert self.h.CheckRateLimiting(wait) == expected_result
+        assert self.h.check_rate_limiting(wait) == expected_result
         elapsed_time = time.time() - start_time
         assert elapsed_time > 30
         assert elapsed_time < 31
 
-    def test_CheckRateLimiting_limited_between_requests_no_wait(self):
+    def test_check_rate_limiting_limited_between_requests_no_wait(self):
         wait = False
         expected_result = False
         current_time = datetime.datetime.now()
@@ -565,12 +565,12 @@ class TestHtml:
         self.h.rate_limit_count_ = 3
         self.h.rate_limit_counter_time_ = current_time - datetime.timedelta(seconds=5)
         start_time = time.time()
-        assert self.h.CheckRateLimiting(wait) == expected_result
+        assert self.h.check_rate_limiting(wait) == expected_result
         elapsed_time = time.time() - start_time
         assert elapsed_time > 0
         assert elapsed_time < 1
 
-    def test_CheckRateLimiting_limited_per_minute_wait_remaining_time(self):
+    def test_check_rate_limiting_limited_per_minute_wait_remaining_time(self):
         wait = True
         expected_result = True
         current_time = datetime.datetime.now()
@@ -580,12 +580,12 @@ class TestHtml:
         self.h.rate_limit_count_ = 5
         self.h.rate_limit_counter_time_ = current_time - datetime.timedelta(seconds=5)
         start_time = time.time()
-        assert self.h.CheckRateLimiting(wait) == expected_result
+        assert self.h.check_rate_limiting(wait) == expected_result
         elapsed_time = time.time() - start_time
         assert elapsed_time > 54
         assert elapsed_time < 56
 
-    def test_CheckRateLimiting_limited_per_minute_wait_between_time(self):
+    def test_check_rate_limiting_limited_per_minute_wait_between_time(self):
         wait = True
         expected_result = True
         current_time = datetime.datetime.now()
@@ -595,12 +595,12 @@ class TestHtml:
         self.h.rate_limit_count_ = 5
         self.h.rate_limit_counter_time_ = current_time - datetime.timedelta(seconds=61)
         start_time = time.time()
-        assert self.h.CheckRateLimiting(wait) == expected_result
+        assert self.h.check_rate_limiting(wait) == expected_result
         elapsed_time = time.time() - start_time
         assert elapsed_time > 30
         assert elapsed_time < 31
 
-    def test_CheckRateLimiting_limited_per_minute_no_wait(self):
+    def test_check_rate_limiting_limited_per_minute_no_wait(self):
         wait = False
         expected_result = False
         current_time = datetime.datetime.now()
@@ -610,18 +610,18 @@ class TestHtml:
         self.h.rate_limit_count_ = 5
         self.h.rate_limit_counter_time_ = current_time - datetime.timedelta(seconds=5)
         start_time = time.time()
-        assert self.h.CheckRateLimiting(wait) == expected_result
+        assert self.h.check_rate_limiting(wait) == expected_result
         elapsed_time = time.time() - start_time
         assert elapsed_time > 0
         assert elapsed_time < 1
 
-    def test_Parse_markup_as_none(self):
+    def test_parse_markup_as_none(self):
         text = None
         expected_result = True
         expected_root_tag = 'root'
         expected_root_children = []
         expected_tag_count = 1
-        assert self.h.Parse(text) == expected_result
+        assert self.h.parse(text) == expected_result
         assert len(self.h.parsed_data_) == expected_tag_count
         assert self.h.parsed_data_[0][0] == expected_root_tag
         assert self.h.root_.name_ == expected_root_tag
@@ -629,7 +629,7 @@ class TestHtml:
         assert self.h.current_tag_.name_ == expected_root_tag
         assert self.h.number_of_tags_ == expected_tag_count
 
-    def test_Parse_good_html_with_several_tags(self):
+    def test_parse_good_html_with_several_tags(self):
         text = "<b>my data</b><i>test</i><br/>"
         expected_result = True
         expected_root_tag = 'root'
@@ -640,7 +640,7 @@ class TestHtml:
         expected_tag_name2 = "i"
         expected_tag_data2 = "test"
         expected_tag_name3 = "br"
-        assert self.h.Parse(text) == expected_result
+        assert self.h.parse(text) == expected_result
         assert self.h.root_.name_ == expected_root_tag
         assert len(self.h.root_.children_) == expected_root_children
         assert self.h.number_of_tags_ == expected_tag_count
@@ -652,7 +652,7 @@ class TestHtml:
         assert self.h.parsed_data_[2][2] == expected_tag_data2
         assert self.h.parsed_data_[3][0] == expected_tag_name3
 
-    def test_Parse_html_with_endtag_as_only_slash(self):
+    def test_parse_html_with_endtag_as_only_slash(self):
         text = "<a href=\"test\">test</><br/>"
         expected_result = True
         expected_root_tag = 'root'
@@ -661,7 +661,7 @@ class TestHtml:
         expected_tag_name1 = "a"
         expected_tag_data1 = "test"
         expected_tag_name2 = "br"
-        assert self.h.Parse(text) == expected_result
+        assert self.h.parse(text) == expected_result
         assert self.h.root_.name_ == expected_root_tag
         assert len(self.h.root_.children_) == expected_root_children
         assert self.h.number_of_tags_ == expected_tag_count
@@ -671,37 +671,37 @@ class TestHtml:
         assert self.h.parsed_data_[1][2] == expected_tag_data1
         assert self.h.parsed_data_[2][0] == expected_tag_name2
 
-    def test_ParseFile_html_file_as_input(self):
+    def test_parse_file_html_file_as_input(self):
         filename = "test.html"
         expected_result = True
-        assert self.h.ParseFile(filename) == expected_result
+        assert self.h.parse_file(filename) == expected_result
 
-    def test_ParseFile_non_existant_file(self):
+    def test_parse_file_non_existant_file(self):
         filename = "invalid_file.html"
         with pytest.raises(html.Error):
-            self.h.ParseFile(filename)
+            self.h.parse_file(filename)
 
-    def test_ParseFile_none_as_filename(self):
+    def test_parse_file_none_as_filename(self):
         filename = None
         expected_result = False
-        assert self.h.ParseFile(filename) == expected_result
+        assert self.h.parse_file(filename) == expected_result
 
-    def test_ParseURL_google_as_input(self):
+    def test_parse_url_google_as_input(self):
         url = "http://www.google.com"
         expected_result = True
-        assert self.h.ParseURL(url) == expected_result
+        assert self.h.parse_url(url) == expected_result
 
-    def test_ParseURL_non_existant_url(self):
+    def test_parse_url_non_existant_url(self):
         url = "http://asdf1974jgladslf.com"
         with pytest.raises(html.Error):
-            self.h.ParseURL(url)
+            self.h.parse_url(url)
 
-    def test_ParseURL_none_as_url(self):
+    def test_parse_url_none_as_url(self):
         url = None
         expected_result = False
-        assert self.h.ParseURL(url) == expected_result
+        assert self.h.parse_url(url) == expected_result
 
-    def test_ParseURLWithPostForm_for_ncaa_game_data(self):
+    def test_parse_url_with_post_form_for_ncaa_game_data(self):
         formdata = {
             "sport_code" : "MBB",
             "division" : "1",
@@ -711,27 +711,27 @@ class TestHtml:
         }
         url = "http://stats.ncaa.org/team/schedule_list"
         expected_result = True
-        assert self.h.ParseURLWithPostForm(url, formdata) == expected_result
+        assert self.h.parse_url_with_post_form(url, formdata) == expected_result
 
-    def test_ParseURLWithPostForm_non_existant_url(self):
+    def test_parse_url_with_post_form_non_existant_url(self):
         url = "http://asdf1974jgladslf.com"
         formdata = {}
         expected_result = False
-        assert self.h.ParseURLWithPostForm(url, formdata) == expected_result
+        assert self.h.parse_url_with_post_form(url, formdata) == expected_result
 
-    def test_ParseURLWithPostForm_none_as_url(self):
+    def test_parse_url_with_post_form_none_as_url(self):
         url = None
         formdata = {}
         expected_result = False
-        assert self.h.ParseURLWithPostForm(url, formdata) == expected_result
+        assert self.h.parse_url_with_post_form(url, formdata) == expected_result
 
-    def test_ParseURLWithPostForm_none_as_post_data(self):
+    def test_parse_url_with_post_form_none_as_post_data(self):
         url = "http://www.google.com"
         formdata = None
         expected_result = False
-        assert self.h.ParseURLWithPostForm(url, formdata) == expected_result
+        assert self.h.parse_url_with_post_form(url, formdata) == expected_result
 
-    def test_FindFirstTag_all_inputs_none(self):
+    def test_find_first_tag_all_inputs_none(self):
         type = None
         attr = None
         data = None
@@ -741,11 +741,11 @@ class TestHtml:
         tag3 = html.Tag(name="d", attributes=[('id', '1'), ('xy', 'z')], children=None, data="data3")
         tag4 = html.Tag(name="d", attributes=[('id', '2'), ('xy', 'w')], children=None, data="data4")
         tag2 = html.Tag(name="xyz", attributes=[('id', 'lga'), ('xy', 'z')], children=[tag1, tag3, tag4], data="data2")
-        self.h.StoreTag(tag2)
+        self.h.store_tag(tag2)
         self.h.number_of_tags_ = len(self.h.parsed_data_)
-        assert self.h.FindFirstTag(type, attr, data) == expected_result
+        assert self.h.find_first_tag(type, attr, data) == expected_result
 
-    def test_FindFirstTag_tag_type_not_found(self):
+    def test_find_first_tag_tag_type_not_found(self):
         type = "aaaaaaaaa"
         attr = None
         data = None
@@ -755,11 +755,11 @@ class TestHtml:
         tag3 = html.Tag(name="d", attributes=[('id', '1'), ('xy', 'z')], children=None, data="data3")
         tag4 = html.Tag(name="d", attributes=[('id', '2'), ('xy', 'w')], children=None, data="data4")
         tag2 = html.Tag(name="xyz", attributes=[('id', 'lga'), ('xy', 'z')], children=[tag1, tag3, tag4], data="data2")
-        self.h.StoreTag(tag2)
+        self.h.store_tag(tag2)
         self.h.number_of_tags_ = len(self.h.parsed_data_)
-        assert self.h.FindFirstTag(type, attr, data) == expected_result
+        assert self.h.find_first_tag(type, attr, data) == expected_result
 
-    def test_FindFirstTag_type_match(self):
+    def test_find_first_tag_type_match(self):
         type = "d"
         attr = None
         data = None
@@ -769,11 +769,11 @@ class TestHtml:
         tag3 = html.Tag(name="d", attributes=[('id', '1'), ('xy', 'z')], children=None, data="data3")
         tag4 = html.Tag(name="d", attributes=[('id', '2'), ('xy', 'w')], children=None, data="data4")
         tag2 = html.Tag(name="xyz", attributes=[('id', 'lga'), ('xy', 'z')], children=[tag1, tag3, tag4], data="data2")
-        self.h.StoreTag(tag2)
+        self.h.store_tag(tag2)
         self.h.number_of_tags_ = len(self.h.parsed_data_)
-        assert self.h.FindFirstTag(type, attr, data) == expected_result
+        assert self.h.find_first_tag(type, attr, data) == expected_result
 
-    def test_FindFirstTag_type_match_one_attribute_missing(self):
+    def test_find_first_tag_type_match_one_attribute_missing(self):
         type = "abc"
         attr = [('id', 'lga')]
         data = None
@@ -783,11 +783,11 @@ class TestHtml:
         tag3 = html.Tag(name="d", attributes=[('id', '1'), ('xy', 'z')], children=None, data="data3")
         tag4 = html.Tag(name="d", attributes=[('id', '2'), ('xy', 'w')], children=None, data="data4")
         tag2 = html.Tag(name="xyz", attributes=[('id', 'lga'), ('xy', 'z')], children=[tag1, tag3, tag4], data="data2")
-        self.h.StoreTag(tag2)
+        self.h.store_tag(tag2)
         self.h.number_of_tags_ = len(self.h.parsed_data_)
-        assert self.h.FindFirstTag(type, attr, data) == expected_result
+        assert self.h.find_first_tag(type, attr, data) == expected_result
 
-    def test_FindFirstTag_type_match_one_attribute_not_equal(self):
+    def test_find_first_tag_type_match_one_attribute_not_equal(self):
         type = "abc"
         attr = [('id', 'lga'), ('xy', 'a')]
         data = None
@@ -797,11 +797,11 @@ class TestHtml:
         tag3 = html.Tag(name="d", attributes=[('id', '1'), ('xy', 'z')], children=None, data="data3")
         tag4 = html.Tag(name="d", attributes=[('id', '2'), ('xy', 'w')], children=None, data="data4")
         tag2 = html.Tag(name="xyz", attributes=[('id', 'lga'), ('xy', 'z')], children=[tag1, tag3, tag4], data="data2")
-        self.h.StoreTag(tag2)
+        self.h.store_tag(tag2)
         self.h.number_of_tags_ = len(self.h.parsed_data_)
-        assert self.h.FindFirstTag(type, attr, data) == expected_result
+        assert self.h.find_first_tag(type, attr, data) == expected_result
 
-    def test_FindFirstTag_type_match_attribute_match(self):
+    def test_find_first_tag_type_match_attribute_match(self):
         type = "abc"
         attr = [('id', 'lga'), ('xy', 'z')]
         data = None
@@ -811,11 +811,11 @@ class TestHtml:
         tag3 = html.Tag(name="d", attributes=[('id', '1'), ('xy', 'z')], children=None, data="data3")
         tag4 = html.Tag(name="d", attributes=[('id', '2'), ('xy', 'w')], children=None, data="data4")
         tag2 = html.Tag(name="xyz", attributes=[('id', 'lga'), ('xy', 'z')], children=[tag1, tag3, tag4], data="data2")
-        self.h.StoreTag(tag2)
+        self.h.store_tag(tag2)
         self.h.number_of_tags_ = len(self.h.parsed_data_)
-        assert self.h.FindFirstTag(type, attr, data) == expected_result
+        assert self.h.find_first_tag(type, attr, data) == expected_result
 
-    def test_FindFirstTag_type_match_data_mismatch(self):
+    def test_find_first_tag_type_match_data_mismatch(self):
         type = "abc"
         attr = None
         data = "asdf"
@@ -825,11 +825,11 @@ class TestHtml:
         tag3 = html.Tag(name="d", attributes=[('id', '1'), ('xy', 'z')], children=None, data="data3")
         tag4 = html.Tag(name="d", attributes=[('id', '2'), ('xy', 'w')], children=None, data="data4")
         tag2 = html.Tag(name="xyz", attributes=[('id', 'lga'), ('xy', 'z')], children=[tag1, tag3, tag4], data="data2")
-        self.h.StoreTag(tag2)
+        self.h.store_tag(tag2)
         self.h.number_of_tags_ = len(self.h.parsed_data_)
-        assert self.h.FindFirstTag(type, attr, data) == expected_result
+        assert self.h.find_first_tag(type, attr, data) == expected_result
 
-    def test_FindFirstTag_type_match_data_match(self):
+    def test_find_first_tag_type_match_data_match(self):
         type = "abc"
         attr = None
         data = "data1"
@@ -839,11 +839,11 @@ class TestHtml:
         tag3 = html.Tag(name="d", attributes=[('id', '1'), ('xy', 'z')], children=None, data="data3")
         tag4 = html.Tag(name="d", attributes=[('id', '2'), ('xy', 'w')], children=None, data="data4")
         tag2 = html.Tag(name="xyz", attributes=[('id', 'lga'), ('xy', 'z')], children=[tag1, tag3, tag4], data="data2")
-        self.h.StoreTag(tag2)
+        self.h.store_tag(tag2)
         self.h.number_of_tags_ = len(self.h.parsed_data_)
-        assert self.h.FindFirstTag(type, attr, data) == expected_result
+        assert self.h.find_first_tag(type, attr, data) == expected_result
 
-    def test_FindFirstTag_type_match_attributes_match_data_mismatch(self):
+    def test_find_first_tag_type_match_attributes_match_data_mismatch(self):
         type = "xyz"
         attr = [('id', 'lga'), ('xy', 'z')]
         data = "dddddddd"
@@ -853,11 +853,11 @@ class TestHtml:
         tag3 = html.Tag(name="d", attributes=[('id', '1'), ('xy', 'z')], children=None, data="data3")
         tag4 = html.Tag(name="d", attributes=[('id', '2'), ('xy', 'w')], children=None, data="data4")
         tag2 = html.Tag(name="xyz", attributes=[('id', 'lga'), ('xy', 'z')], children=[tag1, tag3, tag4], data="data2")
-        self.h.StoreTag(tag2)
+        self.h.store_tag(tag2)
         self.h.number_of_tags_ = len(self.h.parsed_data_)
-        assert self.h.FindFirstTag(type, attr, data) == expected_result
+        assert self.h.find_first_tag(type, attr, data) == expected_result
 
-    def test_FindFirstTag_type_match_attributes_mismatch_data_match(self):
+    def test_find_first_tag_type_match_attributes_mismatch_data_match(self):
         type = "xyz"
         attr = [('id', 'hhh'), ('xy', 'z')]
         data = "data2"
@@ -867,11 +867,11 @@ class TestHtml:
         tag3 = html.Tag(name="d", attributes=[('id', '1'), ('xy', 'z')], children=None, data="data3")
         tag4 = html.Tag(name="d", attributes=[('id', '2'), ('xy', 'w')], children=None, data="data4")
         tag2 = html.Tag(name="xyz", attributes=[('id', 'lga'), ('xy', 'z')], children=[tag1, tag3, tag4], data="data2")
-        self.h.StoreTag(tag2)
+        self.h.store_tag(tag2)
         self.h.number_of_tags_ = len(self.h.parsed_data_)
-        assert self.h.FindFirstTag(type, attr, data) == expected_result
+        assert self.h.find_first_tag(type, attr, data) == expected_result
 
-    def test_FindFirstTag_everything_matches(self):
+    def test_find_first_tag_everything_matches(self):
         type = "d"
         attr = [('id', '2'), ('xy', 'w')]
         data = "data4"
@@ -881,11 +881,11 @@ class TestHtml:
         tag3 = html.Tag(name="d", attributes=[('id', '1'), ('xy', 'z')], children=None, data="data3")
         tag4 = html.Tag(name="d", attributes=[('id', '2'), ('xy', 'w')], children=None, data="data4")
         tag2 = html.Tag(name="xyz", attributes=[('id', 'lga'), ('xy', 'z')], children=[tag1, tag3, tag4], data="data2")
-        self.h.StoreTag(tag2)
+        self.h.store_tag(tag2)
         self.h.number_of_tags_ = len(self.h.parsed_data_)
-        assert self.h.FindFirstTag(type, attr, data) == expected_result
+        assert self.h.find_first_tag(type, attr, data) == expected_result
 
-    def test_FindNextTag_type_match(self):
+    def test_find_next_tag_type_match(self):
         type = "d"
         attr = None
         data = None
@@ -896,11 +896,11 @@ class TestHtml:
         tag3 = html.Tag(name="d", attributes=[('id', '1'), ('xy', 'z')], children=None, data="data3")
         tag4 = html.Tag(name="d", attributes=[('id', '2'), ('xy', 'w')], children=None, data="data4")
         tag2 = html.Tag(name="xyz", attributes=[('id', 'lga'), ('xy', 'z')], children=[tag1, tag3, tag4], data="data2")
-        self.h.StoreTag(tag2)
+        self.h.store_tag(tag2)
         self.h.number_of_tags_ = len(self.h.parsed_data_)
-        assert self.h.FindNextTag(type, attr, data, index) == expected_result
+        assert self.h.find_next_tag(type, attr, data, index) == expected_result
 
-    def test_FindNextTag_type_and_attribute_match(self):
+    def test_find_next_tag_type_and_attribute_match(self):
         type = "d"
         attr = [('id', '1'), ('xy', 'z')]
         data = None
@@ -911,11 +911,11 @@ class TestHtml:
         tag3 = html.Tag(name="d", attributes=[('id', '1'), ('xy', 'z')], children=None, data="data3")
         tag4 = html.Tag(name="d", attributes=[('id', '1'), ('xy', 'z')], children=None, data="data4")
         tag2 = html.Tag(name="xyz", attributes=[('id', 'lga'), ('xy', 'z')], children=[tag1, tag3, tag4], data="data2")
-        self.h.StoreTag(tag2)
+        self.h.store_tag(tag2)
         self.h.number_of_tags_ = len(self.h.parsed_data_)
-        assert self.h.FindNextTag(type, attr, data, index) == expected_result
+        assert self.h.find_next_tag(type, attr, data, index) == expected_result
 
-    def test_FindNextTag_no_more_matching_tags(self):
+    def test_find_next_tag_no_more_matching_tags(self):
         type = "abc"
         attr = None
         data = None
@@ -926,11 +926,11 @@ class TestHtml:
         tag3 = html.Tag(name="d", attributes=[('id', '1'), ('xy', 'z')], children=None, data="data3")
         tag4 = html.Tag(name="d", attributes=[('id', '1'), ('xy', 'z')], children=None, data="data4")
         tag2 = html.Tag(name="xyz", attributes=[('id', 'lga'), ('xy', 'z')], children=[tag1, tag3, tag4], data="data2")
-        self.h.StoreTag(tag2)
+        self.h.store_tag(tag2)
         self.h.number_of_tags_ = len(self.h.parsed_data_)
-        assert self.h.FindNextTag(type, attr, data, index) == expected_result
+        assert self.h.find_next_tag(type, attr, data, index) == expected_result
 
-    def test_GetTag_negative_index(self):
+    def test_get_tag_negative_index(self):
         index = -1
         expected_result = None
         # Preconditions
@@ -938,11 +938,11 @@ class TestHtml:
         tag3 = html.Tag(name="d", attributes=[('id', '1'), ('xy', 'z')], children=None, data="data3")
         tag4 = html.Tag(name="d", attributes=[('id', '1'), ('xy', 'z')], children=None, data="data4")
         tag2 = html.Tag(name="xyz", attributes=[('id', 'lga'), ('xy', 'z')], children=[tag1, tag3, tag4], data="data2")
-        self.h.StoreTag(tag2)
+        self.h.store_tag(tag2)
         self.h.number_of_tags_ = len(self.h.parsed_data_)
-        assert self.h.GetTag(index) == expected_result
+        assert self.h.get_tag(index) == expected_result
 
-    def test_GetTag_index_greater_than_tag_count(self):
+    def test_get_tag_index_greater_than_tag_count(self):
         index = 500
         expected_result = None
         # Preconditions
@@ -950,11 +950,11 @@ class TestHtml:
         tag3 = html.Tag(name="d", attributes=[('id', '1'), ('xy', 'z')], children=None, data="data3")
         tag4 = html.Tag(name="d", attributes=[('id', '1'), ('xy', 'z')], children=None, data="data4")
         tag2 = html.Tag(name="xyz", attributes=[('id', 'lga'), ('xy', 'z')], children=[tag1, tag3, tag4], data="data2")
-        self.h.StoreTag(tag2)
+        self.h.store_tag(tag2)
         self.h.number_of_tags_ = len(self.h.parsed_data_)
-        assert self.h.GetTag(index) == expected_result
+        assert self.h.get_tag(index) == expected_result
 
-    def test_GetTag_index_equal_to_tag_count(self):
+    def test_get_tag_index_equal_to_tag_count(self):
         index = 4
         expected_result = None
         # Preconditions
@@ -962,11 +962,11 @@ class TestHtml:
         tag3 = html.Tag(name="d", attributes=[('id', '1'), ('xy', 'z')], children=None, data="data3")
         tag4 = html.Tag(name="d", attributes=[('id', '1'), ('xy', 'z')], children=None, data="data4")
         tag2 = html.Tag(name="xyz", attributes=[('id', 'lga'), ('xy', 'z')], children=[tag1, tag3, tag4], data="data2")
-        self.h.StoreTag(tag2)
+        self.h.store_tag(tag2)
         self.h.number_of_tags_ = len(self.h.parsed_data_)
-        assert self.h.GetTag(index) == expected_result
+        assert self.h.get_tag(index) == expected_result
 
-    def test_GetTag_valid_index(self):
+    def test_get_tag_valid_index(self):
         index = 0
         expected_name = "xyz"
         expected_attributes = [('id', 'lga'), ('xy', 'z')]
@@ -976,9 +976,9 @@ class TestHtml:
         tag3 = html.Tag(name="d", attributes=[('id', '1'), ('xy', 'z')], children=None, data="data3")
         tag4 = html.Tag(name="d", attributes=[('id', '1'), ('xy', 'z')], children=None, data="data4")
         tag2 = html.Tag(name=expected_name, attributes=expected_attributes, children=[tag1, tag3, tag4], data=expected_data)
-        self.h.StoreTag(tag2)
+        self.h.store_tag(tag2)
         self.h.number_of_tags_ = len(self.h.parsed_data_)
-        newtag = self.h.GetTag(index)
+        newtag = self.h.get_tag(index)
         assert newtag[0] == expected_name
         assert newtag[1] == expected_attributes
         assert newtag[2] == expected_data
