@@ -1,4 +1,4 @@
-## test_HTML
+## test_html
 #  This module test functions in the HTML class.
 #
 #  @author Aaron DeGrow
@@ -8,8 +8,9 @@
 #  @version 0.4
 #
 #  Packages(s) required:
-#  - HTML
 #  - datetime
+#  - html
+#  - pytest
 #  - time
 #
 #  Other requirements:
@@ -24,18 +25,19 @@
 
 # Python imports
 import datetime
+import pytest
 import time
 
 # Other imports
-import HTML
+import html
 
 
-## Test the HTML class
-class TestHTML:
+## Test the html class
+class TestHtml:
 
     ## Setup required by each test
     def setup_method(self, method):
-        self.h = HTML.HTML()
+        self.h = html.HTML()
         self.h.debug_ = True
 
     def test_EscapeText_all_symbols(self):
@@ -77,7 +79,7 @@ class TestHTML:
         self.h.handle_starttag(tag, attrs)
         assert self.h.current_tag_.name_ == tag
         assert self.h.current_tag_.attributes_ == attrs
-        assert self.h.current_tag_.data_ == expected_data
+        assert ''.join(self.h.current_tag_.string_concat_list_) == expected_data
         assert self.h.current_tag_.parent_.name_ == expected_parent_tag
         assert self.h.current_tag_ in self.h.current_tag_.parent_.children_
         assert self.h.current_tag_.children_ == expected_children
@@ -91,7 +93,7 @@ class TestHTML:
         self.h.handle_starttag(tag, attrs)
         assert self.h.current_tag_.name_ == tag
         assert self.h.current_tag_.attributes_ == attrs
-        assert self.h.current_tag_.data_ == expected_data
+        assert ''.join(self.h.current_tag_.string_concat_list_) == expected_data
         assert self.h.current_tag_.parent_.name_ == expected_parent_tag
         assert self.h.current_tag_ in self.h.current_tag_.parent_.children_
         assert self.h.current_tag_.children_ == expected_children
@@ -105,7 +107,7 @@ class TestHTML:
         self.h.handle_starttag(tag, attrs)
         assert self.h.current_tag_.name_ == tag
         assert self.h.current_tag_.attributes_ == attrs
-        assert self.h.current_tag_.data_ == expected_data
+        assert ''.join(self.h.current_tag_.string_concat_list_) == expected_data
         assert self.h.current_tag_.parent_.name_ == expected_parent_tag
         assert self.h.current_tag_ in self.h.current_tag_.parent_.children_
         assert self.h.current_tag_.children_ == expected_children
@@ -119,7 +121,7 @@ class TestHTML:
         self.h.handle_starttag(tag, attrs)
         assert self.h.current_tag_.name_ == tag
         assert self.h.current_tag_.attributes_ == attrs
-        assert self.h.current_tag_.data_ == expected_data
+        assert ''.join(self.h.current_tag_.string_concat_list_) == expected_data
         assert self.h.current_tag_.parent_.name_ == expected_parent_tag
         assert self.h.current_tag_ in self.h.current_tag_.parent_.children_
         assert self.h.current_tag_.children_ == expected_children
@@ -132,7 +134,7 @@ class TestHTML:
         self.h.handle_data(data)
         assert self.h.current_tag_.name_ == tag
         assert self.h.current_tag_.attributes_ == attrs
-        assert self.h.current_tag_.data_ == data
+        assert ''.join(self.h.current_tag_.string_concat_list_) == data
 
     def test_handle_data_none_as_data(self):
         tag = "mytag"
@@ -143,7 +145,7 @@ class TestHTML:
         self.h.handle_data(data)
         assert self.h.current_tag_.name_ == tag
         assert self.h.current_tag_.attributes_ == attrs
-        assert self.h.current_tag_.data_ == expected_data
+        assert ''.join(self.h.current_tag_.string_concat_list_) == expected_data
 
     def test_handle_data_data_with_only_carriage_return_newline(self):
         tag = "mytag"
@@ -154,7 +156,7 @@ class TestHTML:
         self.h.handle_data(data)
         assert self.h.current_tag_.name_ == tag
         assert self.h.current_tag_.attributes_ == attrs
-        assert self.h.current_tag_.data_ == expected_data
+        assert ''.join(self.h.current_tag_.string_concat_list_) == expected_data
 
     def test_handle_data_data_with_cr_nl_inside_text(self):
         tag = "mytag"
@@ -165,7 +167,7 @@ class TestHTML:
         self.h.handle_data(data)
         assert self.h.current_tag_.name_ == tag
         assert self.h.current_tag_.attributes_ == attrs
-        assert self.h.current_tag_.data_ == expected_data
+        assert ''.join(self.h.current_tag_.string_concat_list_) == expected_data
 
     def test_handle_data_appending_through_multiple_calls(self):
         tag = "mytag"
@@ -178,7 +180,7 @@ class TestHTML:
         self.h.handle_data(data2)
         assert self.h.current_tag_.name_ == tag
         assert self.h.current_tag_.attributes_ == attrs
-        assert self.h.current_tag_.data_ == expected_data
+        assert ''.join(self.h.current_tag_.string_concat_list_) == expected_data
 
     def test_handle_endtag_em_tag(self):
         parent_tag = "mytag"
@@ -197,7 +199,7 @@ class TestHTML:
         # current_tag should now be parent_tag and current_tag data should be appended to parent_tag data
         assert self.h.current_tag_.name_ == parent_tag
         assert self.h.current_tag_.attributes_ == parent_attrs
-        assert self.h.current_tag_.data_ == expected_full_data
+        assert ''.join(self.h.current_tag_.string_concat_list_) == expected_full_data
 
     def test_handle_endtag_all_other_tags(self):
         tag = "mytag"
@@ -233,7 +235,7 @@ class TestHTML:
         # current_tag should still be parent tag
         assert self.h.current_tag_.name_ == parent_tag
         assert self.h.current_tag_.attributes_ == parent_attrs
-        assert self.h.current_tag_.data_ == expected_parent_data
+        assert ''.join(self.h.current_tag_.string_concat_list_) == expected_parent_data
         assert len(self.h.current_tag_.children_) == 1
         assert self.h.current_tag_.children_[0].name_ == tag
         assert self.h.current_tag_.children_[0].attributes_ == attrs
@@ -251,7 +253,7 @@ class TestHTML:
         # current_tag should still be parent tag
         assert self.h.current_tag_.name_ == parent_tag
         assert self.h.current_tag_.attributes_ == parent_attrs
-        assert self.h.current_tag_.data_ == expected_parent_data
+        assert ''.join(self.h.current_tag_.string_concat_list_) == expected_parent_data
         assert len(self.h.current_tag_.children_) == 1
         assert self.h.current_tag_.children_[0].name_ == tag
         assert self.h.current_tag_.children_[0].attributes_ == attrs
@@ -263,13 +265,13 @@ class TestHTML:
         expected_attributes = None
         expected_root_tag = "root"
         expected_root_attributes = None
-        expected_root_data = None
+        expected_root_data = ''
         expected_root_parent = None
         self.h.handle_comment(data)
         # current_tag should still be root with comment tag appended to children
         assert self.h.current_tag_.name_ == expected_root_tag
         assert self.h.current_tag_.attributes_ == expected_root_attributes
-        assert self.h.current_tag_.data_ == expected_root_data
+        assert ''.join(self.h.current_tag_.string_concat_list_) == expected_root_data
         assert self.h.current_tag_.parent_ == expected_root_parent
         assert len(self.h.current_tag_.children_) == 1
         assert self.h.current_tag_.children_[0].name_ == expected_tag
@@ -283,13 +285,13 @@ class TestHTML:
         expected_attributes = None
         expected_root_tag = "root"
         expected_root_attributes = None
-        expected_root_data = None
+        expected_root_data = ''
         expected_root_parent = None
         self.h.handle_comment(data)
         # current_tag should still be root no children
         assert self.h.current_tag_.name_ == expected_root_tag
         assert self.h.current_tag_.attributes_ == expected_root_attributes
-        assert self.h.current_tag_.data_ == expected_root_data
+        assert ''.join(self.h.current_tag_.string_concat_list_) == expected_root_data
         assert self.h.current_tag_.parent_ == expected_root_parent
         assert len(self.h.current_tag_.children_) == 0
 
@@ -300,13 +302,13 @@ class TestHTML:
         expected_attributes = None
         expected_root_tag = "root"
         expected_root_attributes = None
-        expected_root_data = None
+        expected_root_data = ''
         expected_root_parent = None
         self.h.handle_comment(data)
         # current_tag should still be root with comment tag appended to children
         assert self.h.current_tag_.name_ == expected_root_tag
         assert self.h.current_tag_.attributes_ == expected_root_attributes
-        assert self.h.current_tag_.data_ == expected_root_data
+        assert ''.join(self.h.current_tag_.string_concat_list_) == expected_root_data
         assert self.h.current_tag_.parent_ == expected_root_parent
         assert len(self.h.current_tag_.children_) == 1
         assert self.h.current_tag_.children_[0].name_ == expected_tag
@@ -320,13 +322,13 @@ class TestHTML:
         expected_attributes = None
         expected_root_tag = "root"
         expected_root_attributes = None
-        expected_root_data = None
+        expected_root_data = ''
         expected_root_parent = None
         self.h.handle_comment(data)
         # current_tag should still be root with 0 children
         assert self.h.current_tag_.name_ == expected_root_tag
         assert self.h.current_tag_.attributes_ == expected_root_attributes
-        assert self.h.current_tag_.data_ == expected_root_data
+        assert ''.join(self.h.current_tag_.string_concat_list_) == expected_root_data
         assert self.h.current_tag_.parent_ == expected_root_parent
         assert len(self.h.current_tag_.children_) == 0
 
@@ -336,13 +338,13 @@ class TestHTML:
         expected_attributes = None
         expected_root_tag = "root"
         expected_root_attributes = None
-        expected_root_data = None
+        expected_root_data = ''
         expected_root_parent = None
         self.h.handle_decl(data)
         # current_tag should still be root with declaration tag appended to children
         assert self.h.current_tag_.name_ == expected_root_tag
         assert self.h.current_tag_.attributes_ == expected_root_attributes
-        assert self.h.current_tag_.data_ == expected_root_data
+        assert ''.join(self.h.current_tag_.string_concat_list_) == expected_root_data
         assert self.h.current_tag_.parent_ == expected_root_parent
         assert len(self.h.current_tag_.children_) == 1
         assert self.h.current_tag_.children_[0].name_ == expected_tag
@@ -356,13 +358,13 @@ class TestHTML:
         expected_attributes = None
         expected_root_tag = "root"
         expected_root_attributes = None
-        expected_root_data = None
+        expected_root_data = ''
         expected_root_parent = None
         self.h.handle_decl(data)
         # current_tag should still be root no children
         assert self.h.current_tag_.name_ == expected_root_tag
         assert self.h.current_tag_.attributes_ == expected_root_attributes
-        assert self.h.current_tag_.data_ == expected_root_data
+        assert ''.join(self.h.current_tag_.string_concat_list_) == expected_root_data
         assert self.h.current_tag_.parent_ == expected_root_parent
         assert len(self.h.current_tag_.children_) == 0
 
@@ -373,13 +375,13 @@ class TestHTML:
         expected_attributes = None
         expected_root_tag = "root"
         expected_root_attributes = None
-        expected_root_data = None
+        expected_root_data = ''
         expected_root_parent = None
         self.h.handle_decl(data)
         # current_tag should still be root with declaration tag appended to children
         assert self.h.current_tag_.name_ == expected_root_tag
         assert self.h.current_tag_.attributes_ == expected_root_attributes
-        assert self.h.current_tag_.data_ == expected_root_data
+        assert ''.join(self.h.current_tag_.string_concat_list_) == expected_root_data
         assert self.h.current_tag_.parent_ == expected_root_parent
         assert len(self.h.current_tag_.children_) == 1
         assert self.h.current_tag_.children_[0].name_ == expected_tag
@@ -393,13 +395,13 @@ class TestHTML:
         expected_attributes = None
         expected_root_tag = "root"
         expected_root_attributes = None
-        expected_root_data = None
+        expected_root_data = ''
         expected_root_parent = None
         self.h.handle_decl(data)
         # current_tag should still be root with 0 children
         assert self.h.current_tag_.name_ == expected_root_tag
         assert self.h.current_tag_.attributes_ == expected_root_attributes
-        assert self.h.current_tag_.data_ == expected_root_data
+        assert ''.join(self.h.current_tag_.string_concat_list_) == expected_root_data
         assert self.h.current_tag_.parent_ == expected_root_parent
         assert len(self.h.current_tag_.children_) == 0
 
@@ -409,13 +411,13 @@ class TestHTML:
         expected_attributes = None
         expected_root_tag = "root"
         expected_root_attributes = None
-        expected_root_data = None
+        expected_root_data = ''
         expected_root_parent = None
         self.h.unknown_decl(data)
         # current_tag should still be root with unknown_declaration tag appended to children
         assert self.h.current_tag_.name_ == expected_root_tag
         assert self.h.current_tag_.attributes_ == expected_root_attributes
-        assert self.h.current_tag_.data_ == expected_root_data
+        assert ''.join(self.h.current_tag_.string_concat_list_) == expected_root_data
         assert self.h.current_tag_.parent_ == expected_root_parent
         assert len(self.h.current_tag_.children_) == 1
         assert self.h.current_tag_.children_[0].name_ == expected_tag
@@ -429,13 +431,13 @@ class TestHTML:
         expected_attributes = None
         expected_root_tag = "root"
         expected_root_attributes = None
-        expected_root_data = None
+        expected_root_data = ''
         expected_root_parent = None
         self.h.unknown_decl(data)
         # current_tag should still be root no children
         assert self.h.current_tag_.name_ == expected_root_tag
         assert self.h.current_tag_.attributes_ == expected_root_attributes
-        assert self.h.current_tag_.data_ == expected_root_data
+        assert ''.join(self.h.current_tag_.string_concat_list_) == expected_root_data
         assert self.h.current_tag_.parent_ == expected_root_parent
         assert len(self.h.current_tag_.children_) == 0
 
@@ -446,13 +448,13 @@ class TestHTML:
         expected_attributes = None
         expected_root_tag = "root"
         expected_root_attributes = None
-        expected_root_data = None
+        expected_root_data = ''
         expected_root_parent = None
         self.h.unknown_decl(data)
         # current_tag should still be root with unknown_declaration tag appended to children
         assert self.h.current_tag_.name_ == expected_root_tag
         assert self.h.current_tag_.attributes_ == expected_root_attributes
-        assert self.h.current_tag_.data_ == expected_root_data
+        assert ''.join(self.h.current_tag_.string_concat_list_) == expected_root_data
         assert self.h.current_tag_.parent_ == expected_root_parent
         assert len(self.h.current_tag_.children_) == 1
         assert self.h.current_tag_.children_[0].name_ == expected_tag
@@ -466,13 +468,13 @@ class TestHTML:
         expected_attributes = None
         expected_root_tag = "root"
         expected_root_attributes = None
-        expected_root_data = None
+        expected_root_data = ''
         expected_root_parent = None
         self.h.unknown_decl(data)
         # current_tag should still be root with 0 children
         assert self.h.current_tag_.name_ == expected_root_tag
         assert self.h.current_tag_.attributes_ == expected_root_attributes
-        assert self.h.current_tag_.data_ == expected_root_data
+        assert ''.join(self.h.current_tag_.string_concat_list_) == expected_root_data
         assert self.h.current_tag_.parent_ == expected_root_parent
         assert len(self.h.current_tag_.children_) == 0
 
@@ -481,7 +483,7 @@ class TestHTML:
         attrs = [('id', 'lga')]
         tag_children = None
         tag_data = "my data"
-        tag = HTML.Tag(name=tag_name, attributes=attrs, children=tag_children, data=tag_data)
+        tag = html.Tag(name=tag_name, attributes=attrs, children=tag_children, data=tag_data)
         self.h.StoreTag(tag)
         self.h.number_of_tags_ = len(self.h.parsed_data_)
         assert len(self.h.parsed_data_) == 1
@@ -500,17 +502,17 @@ class TestHTML:
         attrs1 = [('id', 'lga')]
         tag_children1 = None
         tag_data1 = "my data1"
-        tag1 = HTML.Tag(name=tag_name1, attributes=attrs1, children=tag_children1, data=tag_data1)
+        tag1 = html.Tag(name=tag_name1, attributes=attrs1, children=tag_children1, data=tag_data1)
         tag_name2 = "mytag2"
         attrs2 = [('id', 'lga')]
         tag_children2 = None
         tag_data2 = "my data2"
-        tag2 = HTML.Tag(name=tag_name2, attributes=attrs2, children=tag_children2, data=tag_data2)
+        tag2 = html.Tag(name=tag_name2, attributes=attrs2, children=tag_children2, data=tag_data2)
         tag_name3 = "mytag3"
         attrs3 = [('id', 'lga')]
         tag_children3 = [tag1, tag2]
         tag_data3 = "my data3"
-        tag3 = HTML.Tag(name=tag_name3, attributes=attrs3, children=tag_children3, data=tag_data3)
+        tag3 = html.Tag(name=tag_name3, attributes=attrs3, children=tag_children3, data=tag_data3)
         self.h.StoreTag(tag3)
         self.h.number_of_tags_ = len(self.h.parsed_data_)
         assert len(self.h.parsed_data_) == 3
@@ -676,8 +678,8 @@ class TestHTML:
 
     def test_ParseFile_non_existant_file(self):
         filename = "invalid_file.html"
-        expected_result = False
-        assert self.h.ParseFile(filename) == expected_result
+        with pytest.raises(html.Error):
+            self.h.ParseFile(filename)
 
     def test_ParseFile_none_as_filename(self):
         filename = None
@@ -691,8 +693,8 @@ class TestHTML:
 
     def test_ParseURL_non_existant_url(self):
         url = "http://asdf1974jgladslf.com"
-        expected_result = False
-        assert self.h.ParseURL(url) == expected_result
+        with pytest.raises(html.Error):
+            self.h.ParseURL(url)
 
     def test_ParseURL_none_as_url(self):
         url = None
@@ -735,10 +737,10 @@ class TestHTML:
         data = None
         expected_result = -1
         # Preconditions
-        tag1 = HTML.Tag(name="abc", attributes=[('id', 'lga'), ('xy', 'z')], children=None, data="data1")
-        tag3 = HTML.Tag(name="d", attributes=[('id', '1'), ('xy', 'z')], children=None, data="data3")
-        tag4 = HTML.Tag(name="d", attributes=[('id', '2'), ('xy', 'w')], children=None, data="data4")
-        tag2 = HTML.Tag(name="xyz", attributes=[('id', 'lga'), ('xy', 'z')], children=[tag1, tag3, tag4], data="data2")
+        tag1 = html.Tag(name="abc", attributes=[('id', 'lga'), ('xy', 'z')], children=None, data="data1")
+        tag3 = html.Tag(name="d", attributes=[('id', '1'), ('xy', 'z')], children=None, data="data3")
+        tag4 = html.Tag(name="d", attributes=[('id', '2'), ('xy', 'w')], children=None, data="data4")
+        tag2 = html.Tag(name="xyz", attributes=[('id', 'lga'), ('xy', 'z')], children=[tag1, tag3, tag4], data="data2")
         self.h.StoreTag(tag2)
         self.h.number_of_tags_ = len(self.h.parsed_data_)
         assert self.h.FindFirstTag(type, attr, data) == expected_result
@@ -749,10 +751,10 @@ class TestHTML:
         data = None
         expected_result = -1
         # Preconditions
-        tag1 = HTML.Tag(name="abc", attributes=[('id', 'lga'), ('xy', 'z')], children=None, data="data1")
-        tag3 = HTML.Tag(name="d", attributes=[('id', '1'), ('xy', 'z')], children=None, data="data3")
-        tag4 = HTML.Tag(name="d", attributes=[('id', '2'), ('xy', 'w')], children=None, data="data4")
-        tag2 = HTML.Tag(name="xyz", attributes=[('id', 'lga'), ('xy', 'z')], children=[tag1, tag3, tag4], data="data2")
+        tag1 = html.Tag(name="abc", attributes=[('id', 'lga'), ('xy', 'z')], children=None, data="data1")
+        tag3 = html.Tag(name="d", attributes=[('id', '1'), ('xy', 'z')], children=None, data="data3")
+        tag4 = html.Tag(name="d", attributes=[('id', '2'), ('xy', 'w')], children=None, data="data4")
+        tag2 = html.Tag(name="xyz", attributes=[('id', 'lga'), ('xy', 'z')], children=[tag1, tag3, tag4], data="data2")
         self.h.StoreTag(tag2)
         self.h.number_of_tags_ = len(self.h.parsed_data_)
         assert self.h.FindFirstTag(type, attr, data) == expected_result
@@ -763,10 +765,10 @@ class TestHTML:
         data = None
         expected_result = 2
         # Preconditions
-        tag1 = HTML.Tag(name="abc", attributes=[('id', 'lga'), ('xy', 'z')], children=None, data="data1")
-        tag3 = HTML.Tag(name="d", attributes=[('id', '1'), ('xy', 'z')], children=None, data="data3")
-        tag4 = HTML.Tag(name="d", attributes=[('id', '2'), ('xy', 'w')], children=None, data="data4")
-        tag2 = HTML.Tag(name="xyz", attributes=[('id', 'lga'), ('xy', 'z')], children=[tag1, tag3, tag4], data="data2")
+        tag1 = html.Tag(name="abc", attributes=[('id', 'lga'), ('xy', 'z')], children=None, data="data1")
+        tag3 = html.Tag(name="d", attributes=[('id', '1'), ('xy', 'z')], children=None, data="data3")
+        tag4 = html.Tag(name="d", attributes=[('id', '2'), ('xy', 'w')], children=None, data="data4")
+        tag2 = html.Tag(name="xyz", attributes=[('id', 'lga'), ('xy', 'z')], children=[tag1, tag3, tag4], data="data2")
         self.h.StoreTag(tag2)
         self.h.number_of_tags_ = len(self.h.parsed_data_)
         assert self.h.FindFirstTag(type, attr, data) == expected_result
@@ -777,10 +779,10 @@ class TestHTML:
         data = None
         expected_result = -1
         # Preconditions
-        tag1 = HTML.Tag(name="abc", attributes=[('id', 'lga'), ('xy', 'z')], children=None, data="data1")
-        tag3 = HTML.Tag(name="d", attributes=[('id', '1'), ('xy', 'z')], children=None, data="data3")
-        tag4 = HTML.Tag(name="d", attributes=[('id', '2'), ('xy', 'w')], children=None, data="data4")
-        tag2 = HTML.Tag(name="xyz", attributes=[('id', 'lga'), ('xy', 'z')], children=[tag1, tag3, tag4], data="data2")
+        tag1 = html.Tag(name="abc", attributes=[('id', 'lga'), ('xy', 'z')], children=None, data="data1")
+        tag3 = html.Tag(name="d", attributes=[('id', '1'), ('xy', 'z')], children=None, data="data3")
+        tag4 = html.Tag(name="d", attributes=[('id', '2'), ('xy', 'w')], children=None, data="data4")
+        tag2 = html.Tag(name="xyz", attributes=[('id', 'lga'), ('xy', 'z')], children=[tag1, tag3, tag4], data="data2")
         self.h.StoreTag(tag2)
         self.h.number_of_tags_ = len(self.h.parsed_data_)
         assert self.h.FindFirstTag(type, attr, data) == expected_result
@@ -791,10 +793,10 @@ class TestHTML:
         data = None
         expected_result = -1
         # Preconditions
-        tag1 = HTML.Tag(name="abc", attributes=[('id', 'lga'), ('xy', 'z')], children=None, data="data1")
-        tag3 = HTML.Tag(name="d", attributes=[('id', '1'), ('xy', 'z')], children=None, data="data3")
-        tag4 = HTML.Tag(name="d", attributes=[('id', '2'), ('xy', 'w')], children=None, data="data4")
-        tag2 = HTML.Tag(name="xyz", attributes=[('id', 'lga'), ('xy', 'z')], children=[tag1, tag3, tag4], data="data2")
+        tag1 = html.Tag(name="abc", attributes=[('id', 'lga'), ('xy', 'z')], children=None, data="data1")
+        tag3 = html.Tag(name="d", attributes=[('id', '1'), ('xy', 'z')], children=None, data="data3")
+        tag4 = html.Tag(name="d", attributes=[('id', '2'), ('xy', 'w')], children=None, data="data4")
+        tag2 = html.Tag(name="xyz", attributes=[('id', 'lga'), ('xy', 'z')], children=[tag1, tag3, tag4], data="data2")
         self.h.StoreTag(tag2)
         self.h.number_of_tags_ = len(self.h.parsed_data_)
         assert self.h.FindFirstTag(type, attr, data) == expected_result
@@ -805,10 +807,10 @@ class TestHTML:
         data = None
         expected_result = 1
         # Preconditions
-        tag1 = HTML.Tag(name="abc", attributes=[('id', 'lga'), ('xy', 'z')], children=None, data="data1")
-        tag3 = HTML.Tag(name="d", attributes=[('id', '1'), ('xy', 'z')], children=None, data="data3")
-        tag4 = HTML.Tag(name="d", attributes=[('id', '2'), ('xy', 'w')], children=None, data="data4")
-        tag2 = HTML.Tag(name="xyz", attributes=[('id', 'lga'), ('xy', 'z')], children=[tag1, tag3, tag4], data="data2")
+        tag1 = html.Tag(name="abc", attributes=[('id', 'lga'), ('xy', 'z')], children=None, data="data1")
+        tag3 = html.Tag(name="d", attributes=[('id', '1'), ('xy', 'z')], children=None, data="data3")
+        tag4 = html.Tag(name="d", attributes=[('id', '2'), ('xy', 'w')], children=None, data="data4")
+        tag2 = html.Tag(name="xyz", attributes=[('id', 'lga'), ('xy', 'z')], children=[tag1, tag3, tag4], data="data2")
         self.h.StoreTag(tag2)
         self.h.number_of_tags_ = len(self.h.parsed_data_)
         assert self.h.FindFirstTag(type, attr, data) == expected_result
@@ -819,10 +821,10 @@ class TestHTML:
         data = "asdf"
         expected_result = -1
         # Preconditions
-        tag1 = HTML.Tag(name="abc", attributes=[('id', 'lga'), ('xy', 'z')], children=None, data="data1")
-        tag3 = HTML.Tag(name="d", attributes=[('id', '1'), ('xy', 'z')], children=None, data="data3")
-        tag4 = HTML.Tag(name="d", attributes=[('id', '2'), ('xy', 'w')], children=None, data="data4")
-        tag2 = HTML.Tag(name="xyz", attributes=[('id', 'lga'), ('xy', 'z')], children=[tag1, tag3, tag4], data="data2")
+        tag1 = html.Tag(name="abc", attributes=[('id', 'lga'), ('xy', 'z')], children=None, data="data1")
+        tag3 = html.Tag(name="d", attributes=[('id', '1'), ('xy', 'z')], children=None, data="data3")
+        tag4 = html.Tag(name="d", attributes=[('id', '2'), ('xy', 'w')], children=None, data="data4")
+        tag2 = html.Tag(name="xyz", attributes=[('id', 'lga'), ('xy', 'z')], children=[tag1, tag3, tag4], data="data2")
         self.h.StoreTag(tag2)
         self.h.number_of_tags_ = len(self.h.parsed_data_)
         assert self.h.FindFirstTag(type, attr, data) == expected_result
@@ -833,10 +835,10 @@ class TestHTML:
         data = "data1"
         expected_result = 1
         # Preconditions
-        tag1 = HTML.Tag(name="abc", attributes=[('id', 'lga'), ('xy', 'z')], children=None, data="data1")
-        tag3 = HTML.Tag(name="d", attributes=[('id', '1'), ('xy', 'z')], children=None, data="data3")
-        tag4 = HTML.Tag(name="d", attributes=[('id', '2'), ('xy', 'w')], children=None, data="data4")
-        tag2 = HTML.Tag(name="xyz", attributes=[('id', 'lga'), ('xy', 'z')], children=[tag1, tag3, tag4], data="data2")
+        tag1 = html.Tag(name="abc", attributes=[('id', 'lga'), ('xy', 'z')], children=None, data="data1")
+        tag3 = html.Tag(name="d", attributes=[('id', '1'), ('xy', 'z')], children=None, data="data3")
+        tag4 = html.Tag(name="d", attributes=[('id', '2'), ('xy', 'w')], children=None, data="data4")
+        tag2 = html.Tag(name="xyz", attributes=[('id', 'lga'), ('xy', 'z')], children=[tag1, tag3, tag4], data="data2")
         self.h.StoreTag(tag2)
         self.h.number_of_tags_ = len(self.h.parsed_data_)
         assert self.h.FindFirstTag(type, attr, data) == expected_result
@@ -847,10 +849,10 @@ class TestHTML:
         data = "dddddddd"
         expected_result = -1
         # Preconditions
-        tag1 = HTML.Tag(name="abc", attributes=[('id', 'lga'), ('xy', 'z')], children=None, data="data1")
-        tag3 = HTML.Tag(name="d", attributes=[('id', '1'), ('xy', 'z')], children=None, data="data3")
-        tag4 = HTML.Tag(name="d", attributes=[('id', '2'), ('xy', 'w')], children=None, data="data4")
-        tag2 = HTML.Tag(name="xyz", attributes=[('id', 'lga'), ('xy', 'z')], children=[tag1, tag3, tag4], data="data2")
+        tag1 = html.Tag(name="abc", attributes=[('id', 'lga'), ('xy', 'z')], children=None, data="data1")
+        tag3 = html.Tag(name="d", attributes=[('id', '1'), ('xy', 'z')], children=None, data="data3")
+        tag4 = html.Tag(name="d", attributes=[('id', '2'), ('xy', 'w')], children=None, data="data4")
+        tag2 = html.Tag(name="xyz", attributes=[('id', 'lga'), ('xy', 'z')], children=[tag1, tag3, tag4], data="data2")
         self.h.StoreTag(tag2)
         self.h.number_of_tags_ = len(self.h.parsed_data_)
         assert self.h.FindFirstTag(type, attr, data) == expected_result
@@ -861,10 +863,10 @@ class TestHTML:
         data = "data2"
         expected_result = -1
         # Preconditions
-        tag1 = HTML.Tag(name="abc", attributes=[('id', 'lga'), ('xy', 'z')], children=None, data="data1")
-        tag3 = HTML.Tag(name="d", attributes=[('id', '1'), ('xy', 'z')], children=None, data="data3")
-        tag4 = HTML.Tag(name="d", attributes=[('id', '2'), ('xy', 'w')], children=None, data="data4")
-        tag2 = HTML.Tag(name="xyz", attributes=[('id', 'lga'), ('xy', 'z')], children=[tag1, tag3, tag4], data="data2")
+        tag1 = html.Tag(name="abc", attributes=[('id', 'lga'), ('xy', 'z')], children=None, data="data1")
+        tag3 = html.Tag(name="d", attributes=[('id', '1'), ('xy', 'z')], children=None, data="data3")
+        tag4 = html.Tag(name="d", attributes=[('id', '2'), ('xy', 'w')], children=None, data="data4")
+        tag2 = html.Tag(name="xyz", attributes=[('id', 'lga'), ('xy', 'z')], children=[tag1, tag3, tag4], data="data2")
         self.h.StoreTag(tag2)
         self.h.number_of_tags_ = len(self.h.parsed_data_)
         assert self.h.FindFirstTag(type, attr, data) == expected_result
@@ -875,10 +877,10 @@ class TestHTML:
         data = "data4"
         expected_result = 3
         # Preconditions
-        tag1 = HTML.Tag(name="abc", attributes=[('id', 'lga'), ('xy', 'z')], children=None, data="data1")
-        tag3 = HTML.Tag(name="d", attributes=[('id', '1'), ('xy', 'z')], children=None, data="data3")
-        tag4 = HTML.Tag(name="d", attributes=[('id', '2'), ('xy', 'w')], children=None, data="data4")
-        tag2 = HTML.Tag(name="xyz", attributes=[('id', 'lga'), ('xy', 'z')], children=[tag1, tag3, tag4], data="data2")
+        tag1 = html.Tag(name="abc", attributes=[('id', 'lga'), ('xy', 'z')], children=None, data="data1")
+        tag3 = html.Tag(name="d", attributes=[('id', '1'), ('xy', 'z')], children=None, data="data3")
+        tag4 = html.Tag(name="d", attributes=[('id', '2'), ('xy', 'w')], children=None, data="data4")
+        tag2 = html.Tag(name="xyz", attributes=[('id', 'lga'), ('xy', 'z')], children=[tag1, tag3, tag4], data="data2")
         self.h.StoreTag(tag2)
         self.h.number_of_tags_ = len(self.h.parsed_data_)
         assert self.h.FindFirstTag(type, attr, data) == expected_result
@@ -890,10 +892,10 @@ class TestHTML:
         index = 3
         expected_result = 3
         # Preconditions
-        tag1 = HTML.Tag(name="abc", attributes=[('id', 'lga'), ('xy', 'z')], children=None, data="data1")
-        tag3 = HTML.Tag(name="d", attributes=[('id', '1'), ('xy', 'z')], children=None, data="data3")
-        tag4 = HTML.Tag(name="d", attributes=[('id', '2'), ('xy', 'w')], children=None, data="data4")
-        tag2 = HTML.Tag(name="xyz", attributes=[('id', 'lga'), ('xy', 'z')], children=[tag1, tag3, tag4], data="data2")
+        tag1 = html.Tag(name="abc", attributes=[('id', 'lga'), ('xy', 'z')], children=None, data="data1")
+        tag3 = html.Tag(name="d", attributes=[('id', '1'), ('xy', 'z')], children=None, data="data3")
+        tag4 = html.Tag(name="d", attributes=[('id', '2'), ('xy', 'w')], children=None, data="data4")
+        tag2 = html.Tag(name="xyz", attributes=[('id', 'lga'), ('xy', 'z')], children=[tag1, tag3, tag4], data="data2")
         self.h.StoreTag(tag2)
         self.h.number_of_tags_ = len(self.h.parsed_data_)
         assert self.h.FindNextTag(type, attr, data, index) == expected_result
@@ -905,10 +907,10 @@ class TestHTML:
         index = 3
         expected_result = 3
         # Preconditions
-        tag1 = HTML.Tag(name="abc", attributes=[('id', 'lga'), ('xy', 'z')], children=None, data="data1")
-        tag3 = HTML.Tag(name="d", attributes=[('id', '1'), ('xy', 'z')], children=None, data="data3")
-        tag4 = HTML.Tag(name="d", attributes=[('id', '1'), ('xy', 'z')], children=None, data="data4")
-        tag2 = HTML.Tag(name="xyz", attributes=[('id', 'lga'), ('xy', 'z')], children=[tag1, tag3, tag4], data="data2")
+        tag1 = html.Tag(name="abc", attributes=[('id', 'lga'), ('xy', 'z')], children=None, data="data1")
+        tag3 = html.Tag(name="d", attributes=[('id', '1'), ('xy', 'z')], children=None, data="data3")
+        tag4 = html.Tag(name="d", attributes=[('id', '1'), ('xy', 'z')], children=None, data="data4")
+        tag2 = html.Tag(name="xyz", attributes=[('id', 'lga'), ('xy', 'z')], children=[tag1, tag3, tag4], data="data2")
         self.h.StoreTag(tag2)
         self.h.number_of_tags_ = len(self.h.parsed_data_)
         assert self.h.FindNextTag(type, attr, data, index) == expected_result
@@ -920,10 +922,10 @@ class TestHTML:
         index = 2
         expected_result = -1
         # Preconditions
-        tag1 = HTML.Tag(name="abc", attributes=[('id', 'lga'), ('xy', 'z')], children=None, data="data1")
-        tag3 = HTML.Tag(name="d", attributes=[('id', '1'), ('xy', 'z')], children=None, data="data3")
-        tag4 = HTML.Tag(name="d", attributes=[('id', '1'), ('xy', 'z')], children=None, data="data4")
-        tag2 = HTML.Tag(name="xyz", attributes=[('id', 'lga'), ('xy', 'z')], children=[tag1, tag3, tag4], data="data2")
+        tag1 = html.Tag(name="abc", attributes=[('id', 'lga'), ('xy', 'z')], children=None, data="data1")
+        tag3 = html.Tag(name="d", attributes=[('id', '1'), ('xy', 'z')], children=None, data="data3")
+        tag4 = html.Tag(name="d", attributes=[('id', '1'), ('xy', 'z')], children=None, data="data4")
+        tag2 = html.Tag(name="xyz", attributes=[('id', 'lga'), ('xy', 'z')], children=[tag1, tag3, tag4], data="data2")
         self.h.StoreTag(tag2)
         self.h.number_of_tags_ = len(self.h.parsed_data_)
         assert self.h.FindNextTag(type, attr, data, index) == expected_result
@@ -932,10 +934,10 @@ class TestHTML:
         index = -1
         expected_result = None
         # Preconditions
-        tag1 = HTML.Tag(name="abc", attributes=[('id', 'lga'), ('xy', 'z')], children=None, data="data1")
-        tag3 = HTML.Tag(name="d", attributes=[('id', '1'), ('xy', 'z')], children=None, data="data3")
-        tag4 = HTML.Tag(name="d", attributes=[('id', '1'), ('xy', 'z')], children=None, data="data4")
-        tag2 = HTML.Tag(name="xyz", attributes=[('id', 'lga'), ('xy', 'z')], children=[tag1, tag3, tag4], data="data2")
+        tag1 = html.Tag(name="abc", attributes=[('id', 'lga'), ('xy', 'z')], children=None, data="data1")
+        tag3 = html.Tag(name="d", attributes=[('id', '1'), ('xy', 'z')], children=None, data="data3")
+        tag4 = html.Tag(name="d", attributes=[('id', '1'), ('xy', 'z')], children=None, data="data4")
+        tag2 = html.Tag(name="xyz", attributes=[('id', 'lga'), ('xy', 'z')], children=[tag1, tag3, tag4], data="data2")
         self.h.StoreTag(tag2)
         self.h.number_of_tags_ = len(self.h.parsed_data_)
         assert self.h.GetTag(index) == expected_result
@@ -944,10 +946,10 @@ class TestHTML:
         index = 500
         expected_result = None
         # Preconditions
-        tag1 = HTML.Tag(name="abc", attributes=[('id', 'lga'), ('xy', 'z')], children=None, data="data1")
-        tag3 = HTML.Tag(name="d", attributes=[('id', '1'), ('xy', 'z')], children=None, data="data3")
-        tag4 = HTML.Tag(name="d", attributes=[('id', '1'), ('xy', 'z')], children=None, data="data4")
-        tag2 = HTML.Tag(name="xyz", attributes=[('id', 'lga'), ('xy', 'z')], children=[tag1, tag3, tag4], data="data2")
+        tag1 = html.Tag(name="abc", attributes=[('id', 'lga'), ('xy', 'z')], children=None, data="data1")
+        tag3 = html.Tag(name="d", attributes=[('id', '1'), ('xy', 'z')], children=None, data="data3")
+        tag4 = html.Tag(name="d", attributes=[('id', '1'), ('xy', 'z')], children=None, data="data4")
+        tag2 = html.Tag(name="xyz", attributes=[('id', 'lga'), ('xy', 'z')], children=[tag1, tag3, tag4], data="data2")
         self.h.StoreTag(tag2)
         self.h.number_of_tags_ = len(self.h.parsed_data_)
         assert self.h.GetTag(index) == expected_result
@@ -956,10 +958,10 @@ class TestHTML:
         index = 4
         expected_result = None
         # Preconditions
-        tag1 = HTML.Tag(name="abc", attributes=[('id', 'lga'), ('xy', 'z')], children=None, data="data1")
-        tag3 = HTML.Tag(name="d", attributes=[('id', '1'), ('xy', 'z')], children=None, data="data3")
-        tag4 = HTML.Tag(name="d", attributes=[('id', '1'), ('xy', 'z')], children=None, data="data4")
-        tag2 = HTML.Tag(name="xyz", attributes=[('id', 'lga'), ('xy', 'z')], children=[tag1, tag3, tag4], data="data2")
+        tag1 = html.Tag(name="abc", attributes=[('id', 'lga'), ('xy', 'z')], children=None, data="data1")
+        tag3 = html.Tag(name="d", attributes=[('id', '1'), ('xy', 'z')], children=None, data="data3")
+        tag4 = html.Tag(name="d", attributes=[('id', '1'), ('xy', 'z')], children=None, data="data4")
+        tag2 = html.Tag(name="xyz", attributes=[('id', 'lga'), ('xy', 'z')], children=[tag1, tag3, tag4], data="data2")
         self.h.StoreTag(tag2)
         self.h.number_of_tags_ = len(self.h.parsed_data_)
         assert self.h.GetTag(index) == expected_result
@@ -970,10 +972,10 @@ class TestHTML:
         expected_attributes = [('id', 'lga'), ('xy', 'z')]
         expected_data = "data2"
         # Preconditions
-        tag1 = HTML.Tag(name="abc", attributes=[('id', 'lga'), ('xy', 'z')], children=None, data="data1")
-        tag3 = HTML.Tag(name="d", attributes=[('id', '1'), ('xy', 'z')], children=None, data="data3")
-        tag4 = HTML.Tag(name="d", attributes=[('id', '1'), ('xy', 'z')], children=None, data="data4")
-        tag2 = HTML.Tag(name=expected_name, attributes=expected_attributes, children=[tag1, tag3, tag4], data=expected_data)
+        tag1 = html.Tag(name="abc", attributes=[('id', 'lga'), ('xy', 'z')], children=None, data="data1")
+        tag3 = html.Tag(name="d", attributes=[('id', '1'), ('xy', 'z')], children=None, data="data3")
+        tag4 = html.Tag(name="d", attributes=[('id', '1'), ('xy', 'z')], children=None, data="data4")
+        tag2 = html.Tag(name=expected_name, attributes=expected_attributes, children=[tag1, tag3, tag4], data=expected_data)
         self.h.StoreTag(tag2)
         self.h.number_of_tags_ = len(self.h.parsed_data_)
         newtag = self.h.GetTag(index)
