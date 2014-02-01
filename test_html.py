@@ -1,44 +1,29 @@
-## test_html
-#  This module test functions in the HTML class.
-#
-#  @author Aaron DeGrow
-#
-#  @date Apr 7th, 2013
-#
-#  @version 0.4
-#
-#  Packages(s) required:
-#  - datetime
-#  - html
-#  - pytest
-#  - time
-#
-#  Other requirements:
-#  - pytest
-#
-#  Version History:
-#  - 0.1 First implementation
-#  - 0.2 Added more test coverage
-#  - 0.3 Added rate limit tests
-#  - 0.4 Added tests for parse_url_with_post_form
+"""This module tests functions in the HTML class.
 
+    Packages(s) required:
+    - datetime
+    - html
+    - pytest
+    - time
+    - pytest
 
-# Python imports
+"""
+
+# Imports
 import datetime
 import pytest
 import time
 
-# Other imports
 import html
 
 
-## Test the html class
 class TestHtml:
+    """Test the HTML class."""
 
-    ## Setup required by each test
     def setup_method(self, method):
+        """Setup each test."""
         self.h = html.HTML()
-        self.h.debug_ = True
+        self.h._debug = True
 
     def test_escape_text_all_symbols(self):
         text = "& \" ' < >"
@@ -77,12 +62,12 @@ class TestHtml:
         expected_parent_tag = 'root'
         expected_children = None
         self.h.handle_starttag(tag, attrs)
-        assert self.h.current_tag_.name_ == tag
-        assert self.h.current_tag_.attributes_ == attrs
-        assert ''.join(self.h.current_tag_.string_concat_list_) == expected_data
-        assert self.h.current_tag_.parent_.name_ == expected_parent_tag
-        assert self.h.current_tag_ in self.h.current_tag_.parent_.children_
-        assert self.h.current_tag_.children_ == expected_children
+        assert self.h._current_tag.name == tag
+        assert self.h._current_tag.attributes == attrs
+        assert ''.join(self.h._current_tag.string_concat_list) == expected_data
+        assert self.h._current_tag.parent.name == expected_parent_tag
+        assert self.h._current_tag in self.h._current_tag.parent.children
+        assert self.h._current_tag.children == expected_children
 
     def test_handle_starttag_mytag_with_attributes(self):
         tag = "mytag"
@@ -91,12 +76,12 @@ class TestHtml:
         expected_parent_tag = 'root'
         expected_children = None
         self.h.handle_starttag(tag, attrs)
-        assert self.h.current_tag_.name_ == tag
-        assert self.h.current_tag_.attributes_ == attrs
-        assert ''.join(self.h.current_tag_.string_concat_list_) == expected_data
-        assert self.h.current_tag_.parent_.name_ == expected_parent_tag
-        assert self.h.current_tag_ in self.h.current_tag_.parent_.children_
-        assert self.h.current_tag_.children_ == expected_children
+        assert self.h._current_tag.name == tag
+        assert self.h._current_tag.attributes == attrs
+        assert ''.join(self.h._current_tag.string_concat_list) == expected_data
+        assert self.h._current_tag.parent.name == expected_parent_tag
+        assert self.h._current_tag in self.h._current_tag.parent.children
+        assert self.h._current_tag.children == expected_children
 
     def test_handle_starttag_none_as_tagname(self):
         tag = None
@@ -105,12 +90,12 @@ class TestHtml:
         expected_parent_tag = 'root'
         expected_children = None
         self.h.handle_starttag(tag, attrs)
-        assert self.h.current_tag_.name_ == tag
-        assert self.h.current_tag_.attributes_ == attrs
-        assert ''.join(self.h.current_tag_.string_concat_list_) == expected_data
-        assert self.h.current_tag_.parent_.name_ == expected_parent_tag
-        assert self.h.current_tag_ in self.h.current_tag_.parent_.children_
-        assert self.h.current_tag_.children_ == expected_children
+        assert self.h._current_tag.name == tag
+        assert self.h._current_tag.attributes == attrs
+        assert ''.join(self.h._current_tag.string_concat_list) == expected_data
+        assert self.h._current_tag.parent.name == expected_parent_tag
+        assert self.h._current_tag in self.h._current_tag.parent.children
+        assert self.h._current_tag.children == expected_children
 
     def test_handle_starttag_none_as_attributes(self):
         tag = "mytag"
@@ -119,12 +104,12 @@ class TestHtml:
         expected_parent_tag = 'root'
         expected_children = None
         self.h.handle_starttag(tag, attrs)
-        assert self.h.current_tag_.name_ == tag
-        assert self.h.current_tag_.attributes_ == attrs
-        assert ''.join(self.h.current_tag_.string_concat_list_) == expected_data
-        assert self.h.current_tag_.parent_.name_ == expected_parent_tag
-        assert self.h.current_tag_ in self.h.current_tag_.parent_.children_
-        assert self.h.current_tag_.children_ == expected_children
+        assert self.h._current_tag.name == tag
+        assert self.h._current_tag.attributes == attrs
+        assert ''.join(self.h._current_tag.string_concat_list) == expected_data
+        assert self.h._current_tag.parent.name == expected_parent_tag
+        assert self.h._current_tag in self.h._current_tag.parent.children
+        assert self.h._current_tag.children == expected_children
 
     def test_handle_data_simple_tag_with_simple_data(self):
         tag = "mytag"
@@ -132,9 +117,9 @@ class TestHtml:
         data = 'my data'
         self.h.handle_starttag(tag, attrs)  # Precondition
         self.h.handle_data(data)
-        assert self.h.current_tag_.name_ == tag
-        assert self.h.current_tag_.attributes_ == attrs
-        assert ''.join(self.h.current_tag_.string_concat_list_) == data
+        assert self.h._current_tag.name == tag
+        assert self.h._current_tag.attributes == attrs
+        assert ''.join(self.h._current_tag.string_concat_list) == data
 
     def test_handle_data_none_as_data(self):
         tag = "mytag"
@@ -143,9 +128,9 @@ class TestHtml:
         expected_data = ''
         self.h.handle_starttag(tag, attrs)  # Precondition
         self.h.handle_data(data)
-        assert self.h.current_tag_.name_ == tag
-        assert self.h.current_tag_.attributes_ == attrs
-        assert ''.join(self.h.current_tag_.string_concat_list_) == expected_data
+        assert self.h._current_tag.name == tag
+        assert self.h._current_tag.attributes == attrs
+        assert ''.join(self.h._current_tag.string_concat_list) == expected_data
 
     def test_handle_data_data_with_only_carriage_return_newline(self):
         tag = "mytag"
@@ -154,9 +139,9 @@ class TestHtml:
         expected_data = ''
         self.h.handle_starttag(tag, attrs)  # Precondition
         self.h.handle_data(data)
-        assert self.h.current_tag_.name_ == tag
-        assert self.h.current_tag_.attributes_ == attrs
-        assert ''.join(self.h.current_tag_.string_concat_list_) == expected_data
+        assert self.h._current_tag.name == tag
+        assert self.h._current_tag.attributes == attrs
+        assert ''.join(self.h._current_tag.string_concat_list) == expected_data
 
     def test_handle_data_data_with_cr_nl_inside_text(self):
         tag = "mytag"
@@ -165,9 +150,9 @@ class TestHtml:
         expected_data = 'mydatatest'
         self.h.handle_starttag(tag, attrs)  # Precondition
         self.h.handle_data(data)
-        assert self.h.current_tag_.name_ == tag
-        assert self.h.current_tag_.attributes_ == attrs
-        assert ''.join(self.h.current_tag_.string_concat_list_) == expected_data
+        assert self.h._current_tag.name == tag
+        assert self.h._current_tag.attributes == attrs
+        assert ''.join(self.h._current_tag.string_concat_list) == expected_data
 
     def test_handle_data_appending_through_multiple_calls(self):
         tag = "mytag"
@@ -178,9 +163,9 @@ class TestHtml:
         self.h.handle_starttag(tag, attrs)  # Precondition
         self.h.handle_data(data1)
         self.h.handle_data(data2)
-        assert self.h.current_tag_.name_ == tag
-        assert self.h.current_tag_.attributes_ == attrs
-        assert ''.join(self.h.current_tag_.string_concat_list_) == expected_data
+        assert self.h._current_tag.name == tag
+        assert self.h._current_tag.attributes == attrs
+        assert ''.join(self.h._current_tag.string_concat_list) == expected_data
 
     def test_handle_endtag_em_tag(self):
         parent_tag = "mytag"
@@ -197,9 +182,9 @@ class TestHtml:
         self.h.handle_data(data2)
         self.h.handle_endtag(tag)
         # current_tag should now be parent_tag and current_tag data should be appended to parent_tag data
-        assert self.h.current_tag_.name_ == parent_tag
-        assert self.h.current_tag_.attributes_ == parent_attrs
-        assert ''.join(self.h.current_tag_.string_concat_list_) == expected_full_data
+        assert self.h._current_tag.name == parent_tag
+        assert self.h._current_tag.attributes == parent_attrs
+        assert ''.join(self.h._current_tag.string_concat_list) == expected_full_data
 
     def test_handle_endtag_all_other_tags(self):
         tag = "mytag"
@@ -208,20 +193,20 @@ class TestHtml:
         expected_root_tag = "root"
         expected_root_attributes = None
         expected_root_data = None
-        expected_root_parent = None        
+        expected_root_parent = None
         # Preconditions
         self.h.handle_starttag(tag, attrs)
         self.h.handle_data(data)
         self.h.handle_endtag(tag)
         # current_tag should now be root again
-        assert self.h.current_tag_.name_ == expected_root_tag
-        assert self.h.current_tag_.attributes_ == expected_root_attributes
-        assert self.h.current_tag_.data_ == expected_root_data
-        assert self.h.current_tag_.parent_ == expected_root_parent
-        assert len(self.h.current_tag_.children_) == 1
-        assert self.h.current_tag_.children_[0].name_ == tag
-        assert self.h.current_tag_.children_[0].attributes_ == attrs
-        assert self.h.current_tag_.children_[0].data_ == data
+        assert self.h._current_tag.name == expected_root_tag
+        assert self.h._current_tag.attributes == expected_root_attributes
+        assert self.h._current_tag.data == expected_root_data
+        assert self.h._current_tag.parent == expected_root_parent
+        assert len(self.h._current_tag.children) == 1
+        assert self.h._current_tag.children[0].name == tag
+        assert self.h._current_tag.children[0].attributes == attrs
+        assert self.h._current_tag.children[0].data == data
 
     def test_handle_startendtag_br_tag(self):
         parent_tag = "xyz"
@@ -233,13 +218,13 @@ class TestHtml:
         self.h.handle_starttag(parent_tag, parent_attrs)
         self.h.handle_startendtag(tag, attrs)
         # current_tag should still be parent tag
-        assert self.h.current_tag_.name_ == parent_tag
-        assert self.h.current_tag_.attributes_ == parent_attrs
-        assert ''.join(self.h.current_tag_.string_concat_list_) == expected_parent_data
-        assert len(self.h.current_tag_.children_) == 1
-        assert self.h.current_tag_.children_[0].name_ == tag
-        assert self.h.current_tag_.children_[0].attributes_ == attrs
-        assert self.h.current_tag_.children_[0].parent_.name_ == parent_tag
+        assert self.h._current_tag.name == parent_tag
+        assert self.h._current_tag.attributes == parent_attrs
+        assert ''.join(self.h._current_tag.string_concat_list) == expected_parent_data
+        assert len(self.h._current_tag.children) == 1
+        assert self.h._current_tag.children[0].name == tag
+        assert self.h._current_tag.children[0].attributes == attrs
+        assert self.h._current_tag.children[0].parent.name == parent_tag
 
     def test_handle_startendtag_all_other_tags(self):
         parent_tag = "xyz"
@@ -251,13 +236,13 @@ class TestHtml:
         self.h.handle_starttag(parent_tag, parent_attrs)
         self.h.handle_startendtag(tag, attrs)
         # current_tag should still be parent tag
-        assert self.h.current_tag_.name_ == parent_tag
-        assert self.h.current_tag_.attributes_ == parent_attrs
-        assert ''.join(self.h.current_tag_.string_concat_list_) == expected_parent_data
-        assert len(self.h.current_tag_.children_) == 1
-        assert self.h.current_tag_.children_[0].name_ == tag
-        assert self.h.current_tag_.children_[0].attributes_ == attrs
-        assert self.h.current_tag_.children_[0].parent_.name_ == parent_tag
+        assert self.h._current_tag.name == parent_tag
+        assert self.h._current_tag.attributes == parent_attrs
+        assert ''.join(self.h._current_tag.string_concat_list) == expected_parent_data
+        assert len(self.h._current_tag.children) == 1
+        assert self.h._current_tag.children[0].name == tag
+        assert self.h._current_tag.children[0].attributes == attrs
+        assert self.h._current_tag.children[0].parent.name == parent_tag
 
     def test_handle_comment_normal_data(self):
         data = "my data"
@@ -269,15 +254,15 @@ class TestHtml:
         expected_root_parent = None
         self.h.handle_comment(data)
         # current_tag should still be root with comment tag appended to children
-        assert self.h.current_tag_.name_ == expected_root_tag
-        assert self.h.current_tag_.attributes_ == expected_root_attributes
-        assert ''.join(self.h.current_tag_.string_concat_list_) == expected_root_data
-        assert self.h.current_tag_.parent_ == expected_root_parent
-        assert len(self.h.current_tag_.children_) == 1
-        assert self.h.current_tag_.children_[0].name_ == expected_tag
-        assert self.h.current_tag_.children_[0].attributes_ == expected_attributes
-        assert self.h.current_tag_.children_[0].data_ == data
-        assert self.h.current_tag_.children_[0].parent_.name_ == expected_root_tag
+        assert self.h._current_tag.name == expected_root_tag
+        assert self.h._current_tag.attributes == expected_root_attributes
+        assert ''.join(self.h._current_tag.string_concat_list) == expected_root_data
+        assert self.h._current_tag.parent == expected_root_parent
+        assert len(self.h._current_tag.children) == 1
+        assert self.h._current_tag.children[0].name == expected_tag
+        assert self.h._current_tag.children[0].attributes == expected_attributes
+        assert self.h._current_tag.children[0].data == data
+        assert self.h._current_tag.children[0].parent.name == expected_root_tag
 
     def test_handle_comment_data_with_only_carriage_return_and_newline(self):
         data = "\r\n"
@@ -289,11 +274,11 @@ class TestHtml:
         expected_root_parent = None
         self.h.handle_comment(data)
         # current_tag should still be root no children
-        assert self.h.current_tag_.name_ == expected_root_tag
-        assert self.h.current_tag_.attributes_ == expected_root_attributes
-        assert ''.join(self.h.current_tag_.string_concat_list_) == expected_root_data
-        assert self.h.current_tag_.parent_ == expected_root_parent
-        assert len(self.h.current_tag_.children_) == 0
+        assert self.h._current_tag.name == expected_root_tag
+        assert self.h._current_tag.attributes == expected_root_attributes
+        assert ''.join(self.h._current_tag.string_concat_list) == expected_root_data
+        assert self.h._current_tag.parent == expected_root_parent
+        assert len(self.h._current_tag.children) == 0
 
     def test_handle_comment_string_with_cr_nl_inside(self):
         data = "my\rdata\ntest"
@@ -306,15 +291,15 @@ class TestHtml:
         expected_root_parent = None
         self.h.handle_comment(data)
         # current_tag should still be root with comment tag appended to children
-        assert self.h.current_tag_.name_ == expected_root_tag
-        assert self.h.current_tag_.attributes_ == expected_root_attributes
-        assert ''.join(self.h.current_tag_.string_concat_list_) == expected_root_data
-        assert self.h.current_tag_.parent_ == expected_root_parent
-        assert len(self.h.current_tag_.children_) == 1
-        assert self.h.current_tag_.children_[0].name_ == expected_tag
-        assert self.h.current_tag_.children_[0].attributes_ == expected_attributes
-        assert self.h.current_tag_.children_[0].data_ == expected_data
-        assert self.h.current_tag_.children_[0].parent_.name_ == expected_root_tag
+        assert self.h._current_tag.name == expected_root_tag
+        assert self.h._current_tag.attributes == expected_root_attributes
+        assert ''.join(self.h._current_tag.string_concat_list) == expected_root_data
+        assert self.h._current_tag.parent == expected_root_parent
+        assert len(self.h._current_tag.children) == 1
+        assert self.h._current_tag.children[0].name == expected_tag
+        assert self.h._current_tag.children[0].attributes == expected_attributes
+        assert self.h._current_tag.children[0].data == expected_data
+        assert self.h._current_tag.children[0].parent.name == expected_root_tag
 
     def test_handle_comment_none_as_data(self):
         data = None
@@ -326,11 +311,11 @@ class TestHtml:
         expected_root_parent = None
         self.h.handle_comment(data)
         # current_tag should still be root with 0 children
-        assert self.h.current_tag_.name_ == expected_root_tag
-        assert self.h.current_tag_.attributes_ == expected_root_attributes
-        assert ''.join(self.h.current_tag_.string_concat_list_) == expected_root_data
-        assert self.h.current_tag_.parent_ == expected_root_parent
-        assert len(self.h.current_tag_.children_) == 0
+        assert self.h._current_tag.name == expected_root_tag
+        assert self.h._current_tag.attributes == expected_root_attributes
+        assert ''.join(self.h._current_tag.string_concat_list) == expected_root_data
+        assert self.h._current_tag.parent == expected_root_parent
+        assert len(self.h._current_tag.children) == 0
 
     def test_handle_decl_normal_data(self):
         data = "my data"
@@ -342,15 +327,15 @@ class TestHtml:
         expected_root_parent = None
         self.h.handle_decl(data)
         # current_tag should still be root with declaration tag appended to children
-        assert self.h.current_tag_.name_ == expected_root_tag
-        assert self.h.current_tag_.attributes_ == expected_root_attributes
-        assert ''.join(self.h.current_tag_.string_concat_list_) == expected_root_data
-        assert self.h.current_tag_.parent_ == expected_root_parent
-        assert len(self.h.current_tag_.children_) == 1
-        assert self.h.current_tag_.children_[0].name_ == expected_tag
-        assert self.h.current_tag_.children_[0].attributes_ == expected_attributes
-        assert self.h.current_tag_.children_[0].data_ == data
-        assert self.h.current_tag_.children_[0].parent_.name_ == expected_root_tag
+        assert self.h._current_tag.name == expected_root_tag
+        assert self.h._current_tag.attributes == expected_root_attributes
+        assert ''.join(self.h._current_tag.string_concat_list) == expected_root_data
+        assert self.h._current_tag.parent == expected_root_parent
+        assert len(self.h._current_tag.children) == 1
+        assert self.h._current_tag.children[0].name == expected_tag
+        assert self.h._current_tag.children[0].attributes == expected_attributes
+        assert self.h._current_tag.children[0].data == data
+        assert self.h._current_tag.children[0].parent.name == expected_root_tag
 
     def test_handle_decl_data_with_only_carriage_return_and_newline(self):
         data = "\r\n"
@@ -362,11 +347,11 @@ class TestHtml:
         expected_root_parent = None
         self.h.handle_decl(data)
         # current_tag should still be root no children
-        assert self.h.current_tag_.name_ == expected_root_tag
-        assert self.h.current_tag_.attributes_ == expected_root_attributes
-        assert ''.join(self.h.current_tag_.string_concat_list_) == expected_root_data
-        assert self.h.current_tag_.parent_ == expected_root_parent
-        assert len(self.h.current_tag_.children_) == 0
+        assert self.h._current_tag.name == expected_root_tag
+        assert self.h._current_tag.attributes == expected_root_attributes
+        assert ''.join(self.h._current_tag.string_concat_list) == expected_root_data
+        assert self.h._current_tag.parent == expected_root_parent
+        assert len(self.h._current_tag.children) == 0
 
     def test_handle_decl_string_with_cr_nl_inside(self):
         data = "my\rdata\ntest"
@@ -379,15 +364,15 @@ class TestHtml:
         expected_root_parent = None
         self.h.handle_decl(data)
         # current_tag should still be root with declaration tag appended to children
-        assert self.h.current_tag_.name_ == expected_root_tag
-        assert self.h.current_tag_.attributes_ == expected_root_attributes
-        assert ''.join(self.h.current_tag_.string_concat_list_) == expected_root_data
-        assert self.h.current_tag_.parent_ == expected_root_parent
-        assert len(self.h.current_tag_.children_) == 1
-        assert self.h.current_tag_.children_[0].name_ == expected_tag
-        assert self.h.current_tag_.children_[0].attributes_ == expected_attributes
-        assert self.h.current_tag_.children_[0].data_ == expected_data
-        assert self.h.current_tag_.children_[0].parent_.name_ == expected_root_tag
+        assert self.h._current_tag.name == expected_root_tag
+        assert self.h._current_tag.attributes == expected_root_attributes
+        assert ''.join(self.h._current_tag.string_concat_list) == expected_root_data
+        assert self.h._current_tag.parent == expected_root_parent
+        assert len(self.h._current_tag.children) == 1
+        assert self.h._current_tag.children[0].name == expected_tag
+        assert self.h._current_tag.children[0].attributes == expected_attributes
+        assert self.h._current_tag.children[0].data == expected_data
+        assert self.h._current_tag.children[0].parent.name == expected_root_tag
 
     def test_handle_decl_none_as_data(self):
         data = None
@@ -399,11 +384,11 @@ class TestHtml:
         expected_root_parent = None
         self.h.handle_decl(data)
         # current_tag should still be root with 0 children
-        assert self.h.current_tag_.name_ == expected_root_tag
-        assert self.h.current_tag_.attributes_ == expected_root_attributes
-        assert ''.join(self.h.current_tag_.string_concat_list_) == expected_root_data
-        assert self.h.current_tag_.parent_ == expected_root_parent
-        assert len(self.h.current_tag_.children_) == 0
+        assert self.h._current_tag.name == expected_root_tag
+        assert self.h._current_tag.attributes == expected_root_attributes
+        assert ''.join(self.h._current_tag.string_concat_list) == expected_root_data
+        assert self.h._current_tag.parent == expected_root_parent
+        assert len(self.h._current_tag.children) == 0
 
     def test_unknown_decl_normal_data(self):
         data = "my data"
@@ -415,15 +400,15 @@ class TestHtml:
         expected_root_parent = None
         self.h.unknown_decl(data)
         # current_tag should still be root with unknown_declaration tag appended to children
-        assert self.h.current_tag_.name_ == expected_root_tag
-        assert self.h.current_tag_.attributes_ == expected_root_attributes
-        assert ''.join(self.h.current_tag_.string_concat_list_) == expected_root_data
-        assert self.h.current_tag_.parent_ == expected_root_parent
-        assert len(self.h.current_tag_.children_) == 1
-        assert self.h.current_tag_.children_[0].name_ == expected_tag
-        assert self.h.current_tag_.children_[0].attributes_ == expected_attributes
-        assert self.h.current_tag_.children_[0].data_ == data
-        assert self.h.current_tag_.children_[0].parent_.name_ == expected_root_tag
+        assert self.h._current_tag.name == expected_root_tag
+        assert self.h._current_tag.attributes == expected_root_attributes
+        assert ''.join(self.h._current_tag.string_concat_list) == expected_root_data
+        assert self.h._current_tag.parent == expected_root_parent
+        assert len(self.h._current_tag.children) == 1
+        assert self.h._current_tag.children[0].name == expected_tag
+        assert self.h._current_tag.children[0].attributes == expected_attributes
+        assert self.h._current_tag.children[0].data == data
+        assert self.h._current_tag.children[0].parent.name == expected_root_tag
 
     def test_unknown_decl_data_with_only_carriage_return_and_newline(self):
         data = "\r\n"
@@ -435,11 +420,11 @@ class TestHtml:
         expected_root_parent = None
         self.h.unknown_decl(data)
         # current_tag should still be root no children
-        assert self.h.current_tag_.name_ == expected_root_tag
-        assert self.h.current_tag_.attributes_ == expected_root_attributes
-        assert ''.join(self.h.current_tag_.string_concat_list_) == expected_root_data
-        assert self.h.current_tag_.parent_ == expected_root_parent
-        assert len(self.h.current_tag_.children_) == 0
+        assert self.h._current_tag.name == expected_root_tag
+        assert self.h._current_tag.attributes == expected_root_attributes
+        assert ''.join(self.h._current_tag.string_concat_list) == expected_root_data
+        assert self.h._current_tag.parent == expected_root_parent
+        assert len(self.h._current_tag.children) == 0
 
     def test_unknown_decl_string_with_cr_nl_inside(self):
         data = "my\rdata\ntest"
@@ -452,15 +437,15 @@ class TestHtml:
         expected_root_parent = None
         self.h.unknown_decl(data)
         # current_tag should still be root with unknown_declaration tag appended to children
-        assert self.h.current_tag_.name_ == expected_root_tag
-        assert self.h.current_tag_.attributes_ == expected_root_attributes
-        assert ''.join(self.h.current_tag_.string_concat_list_) == expected_root_data
-        assert self.h.current_tag_.parent_ == expected_root_parent
-        assert len(self.h.current_tag_.children_) == 1
-        assert self.h.current_tag_.children_[0].name_ == expected_tag
-        assert self.h.current_tag_.children_[0].attributes_ == expected_attributes
-        assert self.h.current_tag_.children_[0].data_ == expected_data
-        assert self.h.current_tag_.children_[0].parent_.name_ == expected_root_tag
+        assert self.h._current_tag.name == expected_root_tag
+        assert self.h._current_tag.attributes == expected_root_attributes
+        assert ''.join(self.h._current_tag.string_concat_list) == expected_root_data
+        assert self.h._current_tag.parent == expected_root_parent
+        assert len(self.h._current_tag.children) == 1
+        assert self.h._current_tag.children[0].name == expected_tag
+        assert self.h._current_tag.children[0].attributes == expected_attributes
+        assert self.h._current_tag.children[0].data == expected_data
+        assert self.h._current_tag.children[0].parent.name == expected_root_tag
 
     def test_unknown_decl_none_as_data(self):
         data = None
@@ -472,11 +457,11 @@ class TestHtml:
         expected_root_parent = None
         self.h.unknown_decl(data)
         # current_tag should still be root with 0 children
-        assert self.h.current_tag_.name_ == expected_root_tag
-        assert self.h.current_tag_.attributes_ == expected_root_attributes
-        assert ''.join(self.h.current_tag_.string_concat_list_) == expected_root_data
-        assert self.h.current_tag_.parent_ == expected_root_parent
-        assert len(self.h.current_tag_.children_) == 0
+        assert self.h._current_tag.name == expected_root_tag
+        assert self.h._current_tag.attributes == expected_root_attributes
+        assert ''.join(self.h._current_tag.string_concat_list) == expected_root_data
+        assert self.h._current_tag.parent == expected_root_parent
+        assert len(self.h._current_tag.children) == 0
 
     def test_store_tag_tag_with_data_but_no_children(self):
         tag_name = "mytag"
@@ -485,17 +470,17 @@ class TestHtml:
         tag_data = "my data"
         tag = html.Tag(name=tag_name, attributes=attrs, children=tag_children, data=tag_data)
         self.h.store_tag(tag)
-        self.h.number_of_tags_ = len(self.h.parsed_data_)
-        assert len(self.h.parsed_data_) == 1
-        assert self.h.parsed_data_[0][0] == tag_name
-        assert self.h.parsed_data_[0][1] == attrs
-        assert self.h.parsed_data_[0][2] == tag_data
+        self.h._number_of_tags = len(self.h._parsed_data)
+        assert len(self.h._parsed_data) == 1
+        assert self.h._parsed_data[0][0] == tag_name
+        assert self.h._parsed_data[0][1] == attrs
+        assert self.h._parsed_data[0][2] == tag_data
 
     def test_store_tag_tag_as_none(self):
         tag = None
         self.h.store_tag(tag)
-        self.h.number_of_tags_ = len(self.h.parsed_data_)
-        assert len(self.h.parsed_data_) == 0
+        self.h._number_of_tags = len(self.h._parsed_data)
+        assert len(self.h._parsed_data) == 0
 
     def test_store_tag_tag_with_data_and_children(self):
         tag_name1 = "mytag1"
@@ -514,27 +499,27 @@ class TestHtml:
         tag_data3 = "my data3"
         tag3 = html.Tag(name=tag_name3, attributes=attrs3, children=tag_children3, data=tag_data3)
         self.h.store_tag(tag3)
-        self.h.number_of_tags_ = len(self.h.parsed_data_)
-        assert len(self.h.parsed_data_) == 3
-        assert self.h.parsed_data_[0][0] == tag_name3
-        assert self.h.parsed_data_[0][1] == attrs3
-        assert self.h.parsed_data_[0][2] == tag_data3
-        assert self.h.parsed_data_[1][0] == tag_name1
-        assert self.h.parsed_data_[1][1] == attrs1
-        assert self.h.parsed_data_[1][2] == tag_data1
-        assert self.h.parsed_data_[2][0] == tag_name2
-        assert self.h.parsed_data_[2][1] == attrs2
-        assert self.h.parsed_data_[2][2] == tag_data2
+        self.h._number_of_tags = len(self.h._parsed_data)
+        assert len(self.h._parsed_data) == 3
+        assert self.h._parsed_data[0][0] == tag_name3
+        assert self.h._parsed_data[0][1] == attrs3
+        assert self.h._parsed_data[0][2] == tag_data3
+        assert self.h._parsed_data[1][0] == tag_name1
+        assert self.h._parsed_data[1][1] == attrs1
+        assert self.h._parsed_data[1][2] == tag_data1
+        assert self.h._parsed_data[2][0] == tag_name2
+        assert self.h._parsed_data[2][1] == attrs2
+        assert self.h._parsed_data[2][2] == tag_data2
 
     def test_check_rate_limiting_not_limited(self):
         wait = False
         expected_result = True
         current_time = datetime.datetime.now()
-        self.h.minimum_time_between_requests_ = 30
-        self.h.requests_per_minute_ = 5
-        self.h.last_request_time_ = current_time - datetime.timedelta(seconds=35)
-        self.h.rate_limit_count_ = 3
-        self.h.rate_limit_counter_time_ = current_time - datetime.timedelta(seconds=5)
+        self.h.minimum_time_between_requests = 30
+        self.h.requests_per_minute = 5
+        self.h._last_request_time = current_time - datetime.timedelta(seconds=35)
+        self.h._rate_limit_count = 3
+        self.h._rate_limit_counter_time = current_time - datetime.timedelta(seconds=5)
         start_time = time.time()
         assert self.h.check_rate_limiting(wait) == expected_result
         elapsed_time = time.time() - start_time
@@ -544,11 +529,11 @@ class TestHtml:
         wait = True
         expected_result = True
         current_time = datetime.datetime.now()
-        self.h.minimum_time_between_requests_ = 30
-        self.h.requests_per_minute_ = 5
-        self.h.last_request_time_ = current_time - datetime.timedelta(seconds=20)
-        self.h.rate_limit_count_ = 3
-        self.h.rate_limit_counter_time_ = current_time - datetime.timedelta(seconds=5)
+        self.h.minimum_time_between_requests = 30
+        self.h.requests_per_minute = 5
+        self.h._last_request_time = current_time - datetime.timedelta(seconds=20)
+        self.h._rate_limit_count = 3
+        self.h._rate_limit_counter_time = current_time - datetime.timedelta(seconds=5)
         start_time = time.time()
         assert self.h.check_rate_limiting(wait) == expected_result
         elapsed_time = time.time() - start_time
@@ -559,11 +544,11 @@ class TestHtml:
         wait = False
         expected_result = False
         current_time = datetime.datetime.now()
-        self.h.minimum_time_between_requests_ = 30
-        self.h.requests_per_minute_ = 5
-        self.h.last_request_time_ = current_time - datetime.timedelta(seconds=20)
-        self.h.rate_limit_count_ = 3
-        self.h.rate_limit_counter_time_ = current_time - datetime.timedelta(seconds=5)
+        self.h.minimum_time_between_requests = 30
+        self.h.requests_per_minute = 5
+        self.h._last_request_time = current_time - datetime.timedelta(seconds=20)
+        self.h._rate_limit_count = 3
+        self.h._rate_limit_counter_time = current_time - datetime.timedelta(seconds=5)
         start_time = time.time()
         assert self.h.check_rate_limiting(wait) == expected_result
         elapsed_time = time.time() - start_time
@@ -574,11 +559,11 @@ class TestHtml:
         wait = True
         expected_result = True
         current_time = datetime.datetime.now()
-        self.h.minimum_time_between_requests_ = 30
-        self.h.requests_per_minute_ = 5
-        self.h.last_request_time_ = current_time - datetime.timedelta(seconds=35)
-        self.h.rate_limit_count_ = 5
-        self.h.rate_limit_counter_time_ = current_time - datetime.timedelta(seconds=5)
+        self.h.minimum_time_between_requests = 30
+        self.h.requests_per_minute = 5
+        self.h._last_request_time = current_time - datetime.timedelta(seconds=35)
+        self.h._rate_limit_count = 5
+        self.h._rate_limit_counter_time = current_time - datetime.timedelta(seconds=5)
         start_time = time.time()
         assert self.h.check_rate_limiting(wait) == expected_result
         elapsed_time = time.time() - start_time
@@ -589,11 +574,11 @@ class TestHtml:
         wait = True
         expected_result = True
         current_time = datetime.datetime.now()
-        self.h.minimum_time_between_requests_ = 30
-        self.h.requests_per_minute_ = 5
-        self.h.last_request_time_ = current_time - datetime.timedelta(seconds=35)
-        self.h.rate_limit_count_ = 5
-        self.h.rate_limit_counter_time_ = current_time - datetime.timedelta(seconds=61)
+        self.h.minimum_time_between_requests = 30
+        self.h.requests_per_minute = 5
+        self.h._last_request_time = current_time - datetime.timedelta(seconds=35)
+        self.h._rate_limit_count = 5
+        self.h._rate_limit_counter_time = current_time - datetime.timedelta(seconds=61)
         start_time = time.time()
         assert self.h.check_rate_limiting(wait) == expected_result
         elapsed_time = time.time() - start_time
@@ -604,11 +589,11 @@ class TestHtml:
         wait = False
         expected_result = False
         current_time = datetime.datetime.now()
-        self.h.minimum_time_between_requests_ = 30
-        self.h.requests_per_minute_ = 5
-        self.h.last_request_time_ = current_time - datetime.timedelta(seconds=35)
-        self.h.rate_limit_count_ = 5
-        self.h.rate_limit_counter_time_ = current_time - datetime.timedelta(seconds=5)
+        self.h.minimum_time_between_requests = 30
+        self.h.requests_per_minute = 5
+        self.h._last_request_time = current_time - datetime.timedelta(seconds=35)
+        self.h._rate_limit_count = 5
+        self.h._rate_limit_counter_time = current_time - datetime.timedelta(seconds=5)
         start_time = time.time()
         assert self.h.check_rate_limiting(wait) == expected_result
         elapsed_time = time.time() - start_time
@@ -622,12 +607,12 @@ class TestHtml:
         expected_root_children = []
         expected_tag_count = 1
         assert self.h.parse(text) == expected_result
-        assert len(self.h.parsed_data_) == expected_tag_count
-        assert self.h.parsed_data_[0][0] == expected_root_tag
-        assert self.h.root_.name_ == expected_root_tag
-        assert self.h.root_.children_ == expected_root_children
-        assert self.h.current_tag_.name_ == expected_root_tag
-        assert self.h.number_of_tags_ == expected_tag_count
+        assert len(self.h._parsed_data) == expected_tag_count
+        assert self.h._parsed_data[0][0] == expected_root_tag
+        assert self.h._root.name == expected_root_tag
+        assert self.h._root.children == expected_root_children
+        assert self.h._current_tag.name == expected_root_tag
+        assert self.h._number_of_tags == expected_tag_count
 
     def test_parse_good_html_with_several_tags(self):
         text = "<b>my data</b><i>test</i><br/>"
@@ -641,16 +626,16 @@ class TestHtml:
         expected_tag_data2 = "test"
         expected_tag_name3 = "br"
         assert self.h.parse(text) == expected_result
-        assert self.h.root_.name_ == expected_root_tag
-        assert len(self.h.root_.children_) == expected_root_children
-        assert self.h.number_of_tags_ == expected_tag_count
-        assert len(self.h.parsed_data_) == expected_tag_count
-        assert self.h.parsed_data_[0][0] == expected_root_tag
-        assert self.h.parsed_data_[1][0] == expected_tag_name1
-        assert self.h.parsed_data_[1][2] == expected_tag_data1
-        assert self.h.parsed_data_[2][0] == expected_tag_name2
-        assert self.h.parsed_data_[2][2] == expected_tag_data2
-        assert self.h.parsed_data_[3][0] == expected_tag_name3
+        assert self.h._root.name == expected_root_tag
+        assert len(self.h._root.children) == expected_root_children
+        assert self.h._number_of_tags == expected_tag_count
+        assert len(self.h._parsed_data) == expected_tag_count
+        assert self.h._parsed_data[0][0] == expected_root_tag
+        assert self.h._parsed_data[1][0] == expected_tag_name1
+        assert self.h._parsed_data[1][2] == expected_tag_data1
+        assert self.h._parsed_data[2][0] == expected_tag_name2
+        assert self.h._parsed_data[2][2] == expected_tag_data2
+        assert self.h._parsed_data[3][0] == expected_tag_name3
 
     def test_parse_html_with_endtag_as_only_slash(self):
         text = "<a href=\"test\">test</><br/>"
@@ -662,14 +647,14 @@ class TestHtml:
         expected_tag_data1 = "test"
         expected_tag_name2 = "br"
         assert self.h.parse(text) == expected_result
-        assert self.h.root_.name_ == expected_root_tag
-        assert len(self.h.root_.children_) == expected_root_children
-        assert self.h.number_of_tags_ == expected_tag_count
-        assert len(self.h.parsed_data_) == expected_tag_count
-        assert self.h.parsed_data_[0][0] == expected_root_tag
-        assert self.h.parsed_data_[1][0] == expected_tag_name1
-        assert self.h.parsed_data_[1][2] == expected_tag_data1
-        assert self.h.parsed_data_[2][0] == expected_tag_name2
+        assert self.h._root.name == expected_root_tag
+        assert len(self.h._root.children) == expected_root_children
+        assert self.h._number_of_tags == expected_tag_count
+        assert len(self.h._parsed_data) == expected_tag_count
+        assert self.h._parsed_data[0][0] == expected_root_tag
+        assert self.h._parsed_data[1][0] == expected_tag_name1
+        assert self.h._parsed_data[1][2] == expected_tag_data1
+        assert self.h._parsed_data[2][0] == expected_tag_name2
 
     def test_parse_file_html_file_as_input(self):
         filename = "test.html"
@@ -742,7 +727,7 @@ class TestHtml:
         tag4 = html.Tag(name="d", attributes=[('id', '2'), ('xy', 'w')], children=None, data="data4")
         tag2 = html.Tag(name="xyz", attributes=[('id', 'lga'), ('xy', 'z')], children=[tag1, tag3, tag4], data="data2")
         self.h.store_tag(tag2)
-        self.h.number_of_tags_ = len(self.h.parsed_data_)
+        self.h._number_of_tags = len(self.h._parsed_data)
         assert self.h.find_first_tag(type, attr, data) == expected_result
 
     def test_find_first_tag_tag_type_not_found(self):
@@ -756,7 +741,7 @@ class TestHtml:
         tag4 = html.Tag(name="d", attributes=[('id', '2'), ('xy', 'w')], children=None, data="data4")
         tag2 = html.Tag(name="xyz", attributes=[('id', 'lga'), ('xy', 'z')], children=[tag1, tag3, tag4], data="data2")
         self.h.store_tag(tag2)
-        self.h.number_of_tags_ = len(self.h.parsed_data_)
+        self.h._number_of_tags = len(self.h._parsed_data)
         assert self.h.find_first_tag(type, attr, data) == expected_result
 
     def test_find_first_tag_type_match(self):
@@ -770,7 +755,7 @@ class TestHtml:
         tag4 = html.Tag(name="d", attributes=[('id', '2'), ('xy', 'w')], children=None, data="data4")
         tag2 = html.Tag(name="xyz", attributes=[('id', 'lga'), ('xy', 'z')], children=[tag1, tag3, tag4], data="data2")
         self.h.store_tag(tag2)
-        self.h.number_of_tags_ = len(self.h.parsed_data_)
+        self.h._number_of_tags = len(self.h._parsed_data)
         assert self.h.find_first_tag(type, attr, data) == expected_result
 
     def test_find_first_tag_type_match_one_attribute_missing(self):
@@ -784,7 +769,7 @@ class TestHtml:
         tag4 = html.Tag(name="d", attributes=[('id', '2'), ('xy', 'w')], children=None, data="data4")
         tag2 = html.Tag(name="xyz", attributes=[('id', 'lga'), ('xy', 'z')], children=[tag1, tag3, tag4], data="data2")
         self.h.store_tag(tag2)
-        self.h.number_of_tags_ = len(self.h.parsed_data_)
+        self.h._number_of_tags = len(self.h._parsed_data)
         assert self.h.find_first_tag(type, attr, data) == expected_result
 
     def test_find_first_tag_type_match_one_attribute_not_equal(self):
@@ -798,7 +783,7 @@ class TestHtml:
         tag4 = html.Tag(name="d", attributes=[('id', '2'), ('xy', 'w')], children=None, data="data4")
         tag2 = html.Tag(name="xyz", attributes=[('id', 'lga'), ('xy', 'z')], children=[tag1, tag3, tag4], data="data2")
         self.h.store_tag(tag2)
-        self.h.number_of_tags_ = len(self.h.parsed_data_)
+        self.h._number_of_tags = len(self.h._parsed_data)
         assert self.h.find_first_tag(type, attr, data) == expected_result
 
     def test_find_first_tag_type_match_attribute_match(self):
@@ -812,7 +797,7 @@ class TestHtml:
         tag4 = html.Tag(name="d", attributes=[('id', '2'), ('xy', 'w')], children=None, data="data4")
         tag2 = html.Tag(name="xyz", attributes=[('id', 'lga'), ('xy', 'z')], children=[tag1, tag3, tag4], data="data2")
         self.h.store_tag(tag2)
-        self.h.number_of_tags_ = len(self.h.parsed_data_)
+        self.h._number_of_tags = len(self.h._parsed_data)
         assert self.h.find_first_tag(type, attr, data) == expected_result
 
     def test_find_first_tag_type_match_data_mismatch(self):
@@ -826,7 +811,7 @@ class TestHtml:
         tag4 = html.Tag(name="d", attributes=[('id', '2'), ('xy', 'w')], children=None, data="data4")
         tag2 = html.Tag(name="xyz", attributes=[('id', 'lga'), ('xy', 'z')], children=[tag1, tag3, tag4], data="data2")
         self.h.store_tag(tag2)
-        self.h.number_of_tags_ = len(self.h.parsed_data_)
+        self.h._number_of_tags = len(self.h._parsed_data)
         assert self.h.find_first_tag(type, attr, data) == expected_result
 
     def test_find_first_tag_type_match_data_match(self):
@@ -840,7 +825,7 @@ class TestHtml:
         tag4 = html.Tag(name="d", attributes=[('id', '2'), ('xy', 'w')], children=None, data="data4")
         tag2 = html.Tag(name="xyz", attributes=[('id', 'lga'), ('xy', 'z')], children=[tag1, tag3, tag4], data="data2")
         self.h.store_tag(tag2)
-        self.h.number_of_tags_ = len(self.h.parsed_data_)
+        self.h._number_of_tags = len(self.h._parsed_data)
         assert self.h.find_first_tag(type, attr, data) == expected_result
 
     def test_find_first_tag_type_match_attributes_match_data_mismatch(self):
@@ -854,7 +839,7 @@ class TestHtml:
         tag4 = html.Tag(name="d", attributes=[('id', '2'), ('xy', 'w')], children=None, data="data4")
         tag2 = html.Tag(name="xyz", attributes=[('id', 'lga'), ('xy', 'z')], children=[tag1, tag3, tag4], data="data2")
         self.h.store_tag(tag2)
-        self.h.number_of_tags_ = len(self.h.parsed_data_)
+        self.h._number_of_tags = len(self.h._parsed_data)
         assert self.h.find_first_tag(type, attr, data) == expected_result
 
     def test_find_first_tag_type_match_attributes_mismatch_data_match(self):
@@ -868,7 +853,7 @@ class TestHtml:
         tag4 = html.Tag(name="d", attributes=[('id', '2'), ('xy', 'w')], children=None, data="data4")
         tag2 = html.Tag(name="xyz", attributes=[('id', 'lga'), ('xy', 'z')], children=[tag1, tag3, tag4], data="data2")
         self.h.store_tag(tag2)
-        self.h.number_of_tags_ = len(self.h.parsed_data_)
+        self.h._number_of_tags = len(self.h._parsed_data)
         assert self.h.find_first_tag(type, attr, data) == expected_result
 
     def test_find_first_tag_everything_matches(self):
@@ -882,7 +867,7 @@ class TestHtml:
         tag4 = html.Tag(name="d", attributes=[('id', '2'), ('xy', 'w')], children=None, data="data4")
         tag2 = html.Tag(name="xyz", attributes=[('id', 'lga'), ('xy', 'z')], children=[tag1, tag3, tag4], data="data2")
         self.h.store_tag(tag2)
-        self.h.number_of_tags_ = len(self.h.parsed_data_)
+        self.h._number_of_tags = len(self.h._parsed_data)
         assert self.h.find_first_tag(type, attr, data) == expected_result
 
     def test_find_next_tag_type_match(self):
@@ -897,7 +882,7 @@ class TestHtml:
         tag4 = html.Tag(name="d", attributes=[('id', '2'), ('xy', 'w')], children=None, data="data4")
         tag2 = html.Tag(name="xyz", attributes=[('id', 'lga'), ('xy', 'z')], children=[tag1, tag3, tag4], data="data2")
         self.h.store_tag(tag2)
-        self.h.number_of_tags_ = len(self.h.parsed_data_)
+        self.h._number_of_tags = len(self.h._parsed_data)
         assert self.h.find_next_tag(type, attr, data, index) == expected_result
 
     def test_find_next_tag_type_and_attribute_match(self):
@@ -912,7 +897,7 @@ class TestHtml:
         tag4 = html.Tag(name="d", attributes=[('id', '1'), ('xy', 'z')], children=None, data="data4")
         tag2 = html.Tag(name="xyz", attributes=[('id', 'lga'), ('xy', 'z')], children=[tag1, tag3, tag4], data="data2")
         self.h.store_tag(tag2)
-        self.h.number_of_tags_ = len(self.h.parsed_data_)
+        self.h._number_of_tags = len(self.h._parsed_data)
         assert self.h.find_next_tag(type, attr, data, index) == expected_result
 
     def test_find_next_tag_no_more_matching_tags(self):
@@ -927,7 +912,7 @@ class TestHtml:
         tag4 = html.Tag(name="d", attributes=[('id', '1'), ('xy', 'z')], children=None, data="data4")
         tag2 = html.Tag(name="xyz", attributes=[('id', 'lga'), ('xy', 'z')], children=[tag1, tag3, tag4], data="data2")
         self.h.store_tag(tag2)
-        self.h.number_of_tags_ = len(self.h.parsed_data_)
+        self.h._number_of_tags = len(self.h._parsed_data)
         assert self.h.find_next_tag(type, attr, data, index) == expected_result
 
     def test_get_tag_negative_index(self):
@@ -939,7 +924,7 @@ class TestHtml:
         tag4 = html.Tag(name="d", attributes=[('id', '1'), ('xy', 'z')], children=None, data="data4")
         tag2 = html.Tag(name="xyz", attributes=[('id', 'lga'), ('xy', 'z')], children=[tag1, tag3, tag4], data="data2")
         self.h.store_tag(tag2)
-        self.h.number_of_tags_ = len(self.h.parsed_data_)
+        self.h._number_of_tags = len(self.h._parsed_data)
         assert self.h.get_tag(index) == expected_result
 
     def test_get_tag_index_greater_than_tag_count(self):
@@ -951,7 +936,7 @@ class TestHtml:
         tag4 = html.Tag(name="d", attributes=[('id', '1'), ('xy', 'z')], children=None, data="data4")
         tag2 = html.Tag(name="xyz", attributes=[('id', 'lga'), ('xy', 'z')], children=[tag1, tag3, tag4], data="data2")
         self.h.store_tag(tag2)
-        self.h.number_of_tags_ = len(self.h.parsed_data_)
+        self.h._number_of_tags = len(self.h._parsed_data)
         assert self.h.get_tag(index) == expected_result
 
     def test_get_tag_index_equal_to_tag_count(self):
@@ -963,7 +948,7 @@ class TestHtml:
         tag4 = html.Tag(name="d", attributes=[('id', '1'), ('xy', 'z')], children=None, data="data4")
         tag2 = html.Tag(name="xyz", attributes=[('id', 'lga'), ('xy', 'z')], children=[tag1, tag3, tag4], data="data2")
         self.h.store_tag(tag2)
-        self.h.number_of_tags_ = len(self.h.parsed_data_)
+        self.h._number_of_tags = len(self.h._parsed_data)
         assert self.h.get_tag(index) == expected_result
 
     def test_get_tag_valid_index(self):
@@ -977,7 +962,7 @@ class TestHtml:
         tag4 = html.Tag(name="d", attributes=[('id', '1'), ('xy', 'z')], children=None, data="data4")
         tag2 = html.Tag(name=expected_name, attributes=expected_attributes, children=[tag1, tag3, tag4], data=expected_data)
         self.h.store_tag(tag2)
-        self.h.number_of_tags_ = len(self.h.parsed_data_)
+        self.h._number_of_tags = len(self.h._parsed_data)
         newtag = self.h.get_tag(index)
         assert newtag[0] == expected_name
         assert newtag[1] == expected_attributes
