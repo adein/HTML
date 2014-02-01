@@ -137,9 +137,9 @@ class HTML(HTMLParser.HTMLParser):
                     data = html_file.read()
             except IOError as excep:
                 if self._debug:
-                    self._debug_output.write(
-                        "HTML: IOError while opening the file %s - %s\n" %
-                        (str(file_name), str(excep)))
+                    self._debug_output.write("HTML: IOError while opening the "
+                                             "file %s - %s\n" %
+                                             (str(file_name), str(excep)))
                     self._debug_output.flush()
                 raise Error("Error opening the file")
 
@@ -184,16 +184,16 @@ class HTML(HTMLParser.HTMLParser):
                     data = html_file.read()
             except urllib2.URLError as excep:
                 if self._debug:
-                    self._debug_output.write(
-                        "HTML: URLError while opening the url %s - %s\n" %
-                        (str(url), str(excep)))
+                    self._debug_output.write("HTML: URLError while opening the "
+                                             "url %s - %s\n" %
+                                             (str(url), str(excep)))
                     self._debug_output.flush()
                 raise Error("Error opening the url")
 
             # Update rate limit info
             self._last_request_time = datetime.datetime.now()
             if ((current_time - self._rate_limit_counter_time) >
-               datetime.timedelta(minutes=1)):
+                datetime.timedelta(minutes=1)):
                 self._rate_limit_counter_time = self._last_request_time
                 self._rate_limit_count = 0
             self._rate_limit_count += 1
@@ -222,8 +222,8 @@ class HTML(HTMLParser.HTMLParser):
         # If a url is specified, open it
         if url and len(url) > 0 and form_data:
             if self._debug:
-                self._debug_output.write(
-                "HTML: Parsing the url with POST form: %s\n" % (str(url)))
+                self._debug_output.write("HTML: Parsing the url with POST form:"
+                                         " %s\n" % (str(url)))
                 self._debug_output.flush()
 
             # Check rate limiting
@@ -235,35 +235,36 @@ class HTML(HTMLParser.HTMLParser):
 
             try:
                 # Make the POST request to the url
-                with contextlib.closing(requests.post(url, data=form_data)) \
-                        as req:
+                with contextlib.closing(requests.post(url,
+                                                      data=form_data)) as req:
                     data = req.text
             except requests.ConnectionError as excep:
                 if self._debug:
-                    self._debug_output.write(
-                    "HTML: ConnectionError while opening the url with \
-                    form %s - %s\n" % (str(url), str(excep)))
+                    self._debug_output.write("HTML: ConnectionError while "
+                                             "opening the url with form "
+                                             "%s - %s\n" %
+                                             (str(url), str(excep)))
                     self._debug_output.flush()
                 raise Error("Error opening the url")
             except requests.HTTPError as excep:
                 if self._debug:
-                    self._debug_output.write("HTML: HTTPError while opening \
-                                             the url with form %s - %s\n" %
+                    self._debug_output.write("HTML: HTTPError while opening the"
+                                             " url with form %s - %s\n" %
                                              (str(url), str(excep)))
                     self._debug_output.flush()
                 raise Error("Error opening the url")
             except requests.Timeout as excep:
                 if self._debug:
-                    self._debug_output.write("HTML: Timeout while opening the \
-                                             url with form %s - %s\n" %
+                    self._debug_output.write("HTML: Timeout while opening the "
+                                             "url with form %s - %s\n" %
                                              (str(url), str(excep)))
                     self._debug_output.flush()
                 raise Error("Error opening the url")
             except requests.TooManyRedirects as excep:
                 if self._debug:
-                    self._debug_output.write("HTML: TooManyRedirects while \
-                                             opening the url with \
-                                             form %s - %s\n" %
+                    self._debug_output.write("HTML: TooManyRedirects while "
+                                             "opening the url with form "
+                                             "%s - %s\n" %
                                              (str(url), str(excep)))
                     self._debug_output.flush()
                 raise Error("Error opening the url")
@@ -271,7 +272,7 @@ class HTML(HTMLParser.HTMLParser):
             # Update rate limit info
             self._last_request_time = datetime.datetime.now()
             if ((current_time - self._rate_limit_counter_time) >
-               datetime.timedelta(minutes=1)):
+                datetime.timedelta(minutes=1)):
                 self._rate_limit_counter_time = self._last_request_time
                 self._rate_limit_count = 0
             self._rate_limit_count += 1
@@ -280,8 +281,8 @@ class HTML(HTMLParser.HTMLParser):
             return self.parse(data)
         else:
             if self._debug:
-                self._debug_output.write(
-                    "HTML: No URL or form data specified\n")
+                self._debug_output.write("HTML: No URL or form data "
+                                         "specified\n")
                 self._debug_output.flush()
         return False
 
@@ -301,8 +302,8 @@ class HTML(HTMLParser.HTMLParser):
         # Check rate limiting: time between requests
         current_time = datetime.datetime.now()
         if (self._last_request_time and
-           ((current_time - self._last_request_time) <
-           datetime.timedelta(seconds=self.minimum_time_between_requests))):
+            ((current_time - self._last_request_time) <
+            datetime.timedelta(seconds=self.minimum_time_between_requests))):
             if wait_for_rate_limiting:
                 time.sleep(self.minimum_time_between_requests)
             else:
@@ -313,7 +314,8 @@ class HTML(HTMLParser.HTMLParser):
         if self._rate_limit_count >= self.requests_per_minute:
             if wait_for_rate_limiting:
                 rate_delay = (60 -
-                    (current_time - self._rate_limit_counter_time).seconds)
+                              (current_time -
+                              self._rate_limit_counter_time).seconds)
                 if rate_delay > 0:
                     time.sleep(rate_delay)
                 else:
@@ -349,19 +351,19 @@ class HTML(HTMLParser.HTMLParser):
                 self.feed(markup_text)
             except HTMLParser.HTMLParseError as excep:
                 if self._debug:
-                    self._debug_output.write(
-                    "HTML: HTMLParseError while parsing the HTML - %s\n" %
-                    str(excep))
+                    self._debug_output.write("HTML: HTMLParseError while "
+                                             "parsing the HTML - %s\n" %
+                                             str(excep))
                     self._debug_output.flush()
                 raise Error("Error parsing HTML")
         # Store the root tag to the list of HTML tags
         self.store_tag(self._root)
         self._number_of_tags = len(self._parsed_data)
         if self._debug:
-            self._debug_output.write(
-            "HTML: finished parsing. Position - %s\n" % str(self.getpos()))
-            self._debug_output.write(
-            "HTML: %s tags processed\n" % str(self._number_of_tags))
+            self._debug_output.write("HTML: finished parsing. Position "
+                                     "- %s\n" % str(self.getpos()))
+            self._debug_output.write("HTML: %s tags processed\n" %
+                                     str(self._number_of_tags))
             #for i in range(0, self._number_of_tags):
             #   self._debug_output.write("%s\n" % str(self._parsed_data[i]))
             self._debug_output.flush()
@@ -419,8 +421,8 @@ class HTML(HTMLParser.HTMLParser):
             self._debug_output.flush()
         self._current_tag.data = ''.join(self._current_tag.string_concat_list)
         if tag == 'em':
-            self._current_tag.parent.string_concat_list.\
-                append(self._current_tag.data)
+            self._current_tag.parent.string_concat_list.append(
+                                                        self._current_tag.data)
         self._current_tag = self._current_tag.parent
 
     def handle_startendtag(self, tag, attrs):
@@ -436,7 +438,7 @@ class HTML(HTMLParser.HTMLParser):
         """
         if self._debug:
             self._debug_output.write("HTML: start/end tag - %s / %s\n" %
-                                    (tag, str(attrs)))
+                                     (tag, str(attrs)))
             self._debug_output.flush()
         if tag == 'br':
             self._current_tag.string_concat_list.append(" ")
@@ -569,11 +571,6 @@ class HTML(HTMLParser.HTMLParser):
                 if data[0].lower() == tag_type.lower():
                     match = True
                     if tag_attributes and len(data) > 1:
-                        #data_attr_lower = [(i.lower(),j.lower()) for i,j in \
-                        #data[1]]
-                        #tag_attr_lower  = [(i.lower(),j.lower()) for i,j in \
-                        #tag_attributes]
-                        #if data_attr_lower != tag_attr_lower:
                         if data[1] != tag_attributes:
                             match = False
                     if tag_data and len(data) > 2:
