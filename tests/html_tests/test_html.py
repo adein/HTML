@@ -3,15 +3,18 @@
     Packages(s) required:
     - datetime
     - html
-    - pytest
     - time
     - pytest
+    - logging
+    - sys
 
 """
 
 # Imports
 import datetime
+import logging
 import pytest
+import sys
 import time
 
 import sys,os
@@ -25,8 +28,12 @@ class TestHtml:
 
     def setup_method(self, method):
         """Setup each test."""
-        self.h = html.html.HTML()
-        self.h._debug = True
+        formatter = logging.Formatter('%(asctime)s - %(levelname)s:'
+                                      '%(name)s:%(message)s')
+        handler = logging.StreamHandler(stream=sys.stdout)
+        handler.setLevel(logging.DEBUG)
+        handler.setFormatter(formatter)
+        self.h = html.html.HTML(handler)
 
     def test_escape_text_all_symbols(self):
         text = "& \" ' < >"
