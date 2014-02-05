@@ -5,8 +5,8 @@
     - contextlib
     - datetime
     - HTMLParser
+    - logging
     - requests
-    - sys
     - time
     - urllib2
 
@@ -23,8 +23,8 @@ import cgi
 import contextlib
 import datetime
 import HTMLParser
+import logging
 import requests
-import sys
 import time
 import urllib2
 #from __future__ import with_statement # required if using Python 2.5
@@ -51,8 +51,6 @@ class HTML(HTMLParser.HTMLParser):
     minimum_time_between_requests = 0
 
     # Private member variables
-    _debug = False
-    _debug_output = sys.stdout  # Output to the screen
     _parsed_data = None
     _root = None
     _current_tag = None
@@ -61,19 +59,39 @@ class HTML(HTMLParser.HTMLParser):
     _rate_limit_counter_time = None  # date/time for rate limit periods
     _rate_limit_count = 0  # number of HTTP requests during this rate period
 
-    def __init__(self):
+    # Private member objects
+    _logger = None
+
+    def __init__(self, log_handler=None):
         """Create and initialize the HTML parser.
 
         Prepare the parent class for processing, reset the root Tag, tag
         counter, and rate limiting.
 
+        Args:
+            log_handler: The log handler to use instead of the default.
+
         """
+        self._logger = logging.getLogger(__name__)
+        handler = None
+        if log_handler:
+            handler = log_handler
+        else:
+            formatter = logging.Formatter('%(asctime)s - %(levelname)s:'
+                                          '%(name)s:%(message)s')
+            handler = logging.StreamHandler()
+            handler.setLevel(logging.INFO)
+            handler.setFormatter(formatter)
+        self._logger.addHandler(handler)
+
         self._parsed_data = []
         self._root = atom.tag.Tag(name='root', children=[])
         self._current_tag = self._root
         self._number_of_tags = 0
         HTMLParser.HTMLParser.__init__(self)
         self._rate_limit_counter_time = datetime.datetime.now()
+        self._logger.debug("rate_limit_counter_time = %i",
+                           self._rate_limit_counter_time)
 
     def parse_file(self, file_name):
         """Parse an HTML file.
@@ -82,35 +100,26 @@ class HTML(HTMLParser.HTMLParser):
             file_name: The HTML file to parse.
 
         Returns:
-            True if theh file was parsed successfully.
+            True if the file was parsed successfully.
 
         """
         html_file = None
         # If a file is specified, open it
         if file_name and len(file_name) > 0:
-            if self._debug:
-                self._debug_output.write("HTML: Parsing the file: %s\n" %
-                                         (str(file_name)))
-                self._debug_output.flush()
+            self._logger.info("Parsing the file: %s", str(file_name))
             try:
                 # Open the file
                 with open(file_name) as html_file:
                     # Read the markup text
                     data = html_file.read()
+                    self._logger.debug("File contents: %s", str(data))
             except IOError as excep:
-                if self._debug:
-                    self._debug_output.write("HTML: IOError while opening the "
-                                             "file %s - %s\n" %
-                                             (str(file_name), str(excep)))
-                    self._debug_output.flush()
-                raise Error("Error opening the file")
+                raise Error("IOError opening the file: %s", str(excep))
 
             # Parse the markup text
             return self.parse(data)
         else:
-            if self._debug:
-                self._debug_output.write("HTML: No file specified\n")
-                self._debug_output.flush()
+            self._logger.error("No file specified")
         return False
 
     def parse_url(self, url, wait_for_rate_limiting=True):
@@ -127,45 +136,32 @@ class HTML(HTMLParser.HTMLParser):
         html_file = None
         # If a url is specified, open it
         if url and len(url) > 0:
-            if self._debug:
-                self._debug_output.write("HTML: Parsing the url: %s\n" %
-                                         (str(url)))
-                self._debug_output.flush()
+            self._logger.info("Parsing the url: %s", str(url))
 
             # Check rate limiting
-            if not self.check_rate_limiting(wait_for_rate_limiting):
+            if not self._check_rate_limiting(wait_for_rate_limiting):
                 return False
 
             # Store the time when the request is made
             current_time = datetime.datetime.now()
+            self._logger.debug("current_time: %i", current_time)
 
             try:
                 # Open the url
                 with contextlib.closing(urllib2.urlopen(url)) as html_file:
                     # Read the markup text
                     data = html_file.read()
+                    self._logger.debug("URL contents: %s", str(data))
             except urllib2.URLError as excep:
-                if self._debug:
-                    self._debug_output.write("HTML: URLError while opening the "
-                                             "url %s - %s\n" %
-                                             (str(url), str(excep)))
-                    self._debug_output.flush()
-                raise Error("Error opening the url")
+                raise Error("URL error opening the url: %s", str(excep))
 
             # Update rate limit info
-            self._last_request_time = datetime.datetime.now()
-            if ((current_time - self._rate_limit_counter_time) >
-                datetime.timedelta(minutes=1)):
-                self._rate_limit_counter_time = self._last_request_time
-                self._rate_limit_count = 0
-            self._rate_limit_count += 1
+            self._update_rate_limiting(current_time)
 
             # Parse the markup text
             return self.parse(data)
         else:
-            if self._debug:
-                self._debug_output.write("HTML: No URL specified\n")
-                self._debug_output.flush()
+            self._logger.error("No URL specified")
         return False
 
     def parse_url_with_post_form(self, url, form_data,
@@ -183,72 +179,43 @@ class HTML(HTMLParser.HTMLParser):
         """
         # If a url is specified, open it
         if url and len(url) > 0 and form_data:
-            if self._debug:
-                self._debug_output.write("HTML: Parsing the url with POST form:"
-                                         " %s\n" % (str(url)))
-                self._debug_output.flush()
+            self._logger.info("Parsing the url with POST form: %s", str(url))
+            self._logger.debug("POST data: %s", str(form_data))
 
             # Check rate limiting
-            if not self.check_rate_limiting(wait_for_rate_limiting):
+            if not self._check_rate_limiting(wait_for_rate_limiting):
                 return False
 
             # Store the time when the request is made
             current_time = datetime.datetime.now()
+            self._logger.debug("current_time: %i", current_time)
 
             try:
                 # Make the POST request to the url
                 with contextlib.closing(requests.post(url,
                                                       data=form_data)) as req:
                     data = req.text
+                    self._logger.debug("URL contents: %s", str(data))
             except requests.ConnectionError as excep:
-                if self._debug:
-                    self._debug_output.write("HTML: ConnectionError while "
-                                             "opening the url with form "
-                                             "%s - %s\n" %
-                                             (str(url), str(excep)))
-                    self._debug_output.flush()
-                raise Error("Error opening the url")
+                raise Error("Connection error opening the url: %s", str(excep))
             except requests.HTTPError as excep:
-                if self._debug:
-                    self._debug_output.write("HTML: HTTPError while opening the"
-                                             " url with form %s - %s\n" %
-                                             (str(url), str(excep)))
-                    self._debug_output.flush()
-                raise Error("Error opening the url")
+                raise Error("HTTP error opening the url: %s", str(excep))
             except requests.Timeout as excep:
-                if self._debug:
-                    self._debug_output.write("HTML: Timeout while opening the "
-                                             "url with form %s - %s\n" %
-                                             (str(url), str(excep)))
-                    self._debug_output.flush()
-                raise Error("Error opening the url")
+                raise Error("Timeout error opening the url: %s", str(excep))
             except requests.TooManyRedirects as excep:
-                if self._debug:
-                    self._debug_output.write("HTML: TooManyRedirects while "
-                                             "opening the url with form "
-                                             "%s - %s\n" %
-                                             (str(url), str(excep)))
-                    self._debug_output.flush()
-                raise Error("Error opening the url")
+                raise Error("Too many redirects error opening the url: %s",
+                            str(excep))
 
             # Update rate limit info
-            self._last_request_time = datetime.datetime.now()
-            if ((current_time - self._rate_limit_counter_time) >
-                datetime.timedelta(minutes=1)):
-                self._rate_limit_counter_time = self._last_request_time
-                self._rate_limit_count = 0
-            self._rate_limit_count += 1
+            self._update_rate_limiting(current_time)
 
             # Parse the markup text
             return self.parse(data)
         else:
-            if self._debug:
-                self._debug_output.write("HTML: No URL or form data "
-                                         "specified\n")
-                self._debug_output.flush()
+            self._logger.error("No URL or form data specified")
         return False
 
-    def check_rate_limiting(self, wait_for_rate_limiting=True):
+    def _check_rate_limiting(self, wait_for_rate_limiting=True):
         """Check for rate limiting.
 
         Check the rate limiting and optionally pause if required to avoid
@@ -262,19 +229,33 @@ class HTML(HTMLParser.HTMLParser):
 
         """
         # Check rate limiting: time between requests
+        self._logger.info("Checking rate limiting")
+        self._logger.debug("wait_for_rate_limiting = %s",
+                           str(wait_for_rate_limiting))
         current_time = datetime.datetime.now()
+        self._logger.debug("current_time: %i", current_time)
         if (self._last_request_time and
             ((current_time - self._last_request_time) <
             datetime.timedelta(seconds=self.minimum_time_between_requests))):
+            self._logger.debug("Rate limit triggered, time delta: %i, minimum"
+                               " time between requests: %i",
+                               (current_time - self._last_request_time),
+                               self.minimum_time_between_requests)
             if wait_for_rate_limiting:
+                self._logger.debug("Waiting for rate limiting")
                 time.sleep(self.minimum_time_between_requests)
             else:
+                self._logger.debug("Not waiting for rate limiting, aborting")
                 return False
 
         # Check rate limiting: requests per minute
         current_time = datetime.datetime.now()      # Get current time
         if self._rate_limit_count >= self.requests_per_minute:
+            self._logger.debug("Rate limit triggered, rate limit count: %i, "
+                               "requests per minute: %i",
+                               self._rate_limit_count, self.requests_per_minute)
             if wait_for_rate_limiting:
+                self._logger.debug("Waiting for rate limiting")
                 rate_delay = (60 -
                               (current_time -
                               self._rate_limit_counter_time).seconds)
@@ -283,10 +264,32 @@ class HTML(HTMLParser.HTMLParser):
                 else:
                     time.sleep(self.minimum_time_between_requests)
             else:
+                self._logger.debug("Not waiting for rate limiting, aborting")
                 return False
 
         # Rate limiting not needed, or it was and we waited the required time
         return True
+
+    def _update_rate_limiting(self, current_time):
+        """Update rate limit data.
+
+        Args:
+            current_time: The time of the current request.
+
+        """
+        # Update rate limit info
+        self._logger.info("Updating rate limiting")
+        self._last_request_time = datetime.datetime.now()
+        self._logger.debug("last_request_time: %i", self._last_request_time)
+        if ((current_time - self._rate_limit_counter_time) >
+            datetime.timedelta(minutes=1)):
+            self._logger.debug("Reset rate limiting")
+            self._rate_limit_counter_time = self._last_request_time
+            self._logger.debug("rate_limit_counter_time: %i",
+                               self._rate_limit_counter_time)
+            self._rate_limit_count = 0
+        self._rate_limit_count += 1
+        self._logger.debug("rate_limit_count: %i", self._rate_limit_count)
 
     def parse(self, markup_text):
         """Parse HTML markup.
@@ -298,6 +301,7 @@ class HTML(HTMLParser.HTMLParser):
             True if the markup was parsed successfully.
 
         """
+        self._logger.info("Parsing HTML markup")
         # Start with the root of the document
         self._parsed_data = []
         self._root = atom.tag.Tag(name='root', children=[])
@@ -308,31 +312,22 @@ class HTML(HTMLParser.HTMLParser):
         # Fix any issues before we call the parser
         if markup_text:
             markup_text = markup_text.replace('</>', '</a>')
+            self._logger.debug("Replaced </> with </a>")
             try:
                 # Feed our data to the parser
                 self.feed(markup_text)
             except HTMLParser.HTMLParseError as excep:
-                if self._debug:
-                    self._debug_output.write("HTML: HTMLParseError while "
-                                             "parsing the HTML - %s\n" %
-                                             str(excep))
-                    self._debug_output.flush()
-                raise Error("Error parsing HTML")
+                raise Error("Error parsing HTML: %s", str(excep))
         # Store the root tag to the list of HTML tags
-        self.store_tag(self._root)
+        self._store_tag(self._root)
         self._number_of_tags = len(self._parsed_data)
-        if self._debug:
-            self._debug_output.write("HTML: finished parsing. Position "
-                                     "- %s\n" % str(self.getpos()))
-            self._debug_output.write("HTML: %s tags processed\n" %
-                                     str(self._number_of_tags))
-            #for i in range(0, self._number_of_tags):
-            #   self._debug_output.write("%s\n" % str(self._parsed_data[i]))
-            self._debug_output.flush()
+        self._logger.debug("finished parsing. Position "
+                           "- %s", str(self.getpos()))
+        self._logger.debug("%s tags processed", str(self._number_of_tags))
 
         return True
 
-    def store_tag(self, tag):
+    def _store_tag(self, tag):
         """Store the current tag.
 
         Args:
@@ -340,13 +335,19 @@ class HTML(HTMLParser.HTMLParser):
 
         """
         if tag:
+            self._logger.info("Storing tag")
             # Store the tag data to the list of tags
             self._parsed_data.append([tag.name, tag.attributes, tag.data])
+            self._logger.debug("Adding tag: [%s, %s, %s]", str(tag.name),
+                               str(tag.attributes), str(tag.data))
             # If the tag has children, recursively call this function to
             # store them as well
             if tag.children and len(tag.children) > 0:
+                self._logger.debug("Adding %i children", len(tag.children))
                 for i in range(0, len(tag.children)):
-                    self.store_tag(tag.children[i])
+                    self._store_tag(tag.children[i])
+        else:
+            self._logger.error("No tag specified")
 
     def handle_starttag(self, tag, attrs):
         """Handle the start of an HTML tag.
@@ -358,12 +359,11 @@ class HTML(HTMLParser.HTMLParser):
             attrs: A list of the tag's attributes.
 
         """
-        if self._debug:
-            self._debug_output.write("HTML: start tag - %s / %s\n" %
-                                     (tag, str(attrs)))
-            self._debug_output.flush()
-        new_tag = atom.tag.Tag(name=tag, attributes=attrs, parent=self._current_tag,
-                      data='')
+        self._logger.debug("start tag - %s / %s", tag, str(attrs))
+        new_tag = atom.tag.Tag(name=tag, attributes=attrs,
+                               parent=self._current_tag,
+                               data='')
+        self._logger.debug("parent tag: %s", str(self._current_tag.name))
         if not self._current_tag.children:
             self._current_tag.children = []
         self._current_tag.children.append(new_tag)
@@ -378,9 +378,7 @@ class HTML(HTMLParser.HTMLParser):
             tag: The HTML tag.
 
         """
-        if self._debug:
-            self._debug_output.write("HTML: end tag - %s\n" % tag)
-            self._debug_output.flush()
+        self._logger.debug("end tag - %s", tag)
         self._current_tag.data = ''.join(self._current_tag.string_concat_list)
         if tag == 'em':
             self._current_tag.parent.string_concat_list.append(
@@ -398,13 +396,11 @@ class HTML(HTMLParser.HTMLParser):
             attrs: A list of the tag's attributes.
 
         """
-        if self._debug:
-            self._debug_output.write("HTML: start/end tag - %s / %s\n" %
-                                     (tag, str(attrs)))
-            self._debug_output.flush()
+        self._logger.debug("start/end tag - %s / %s", tag, str(attrs))
         if tag == 'br':
             self._current_tag.string_concat_list.append(" ")
-        new_tag = atom.tag.Tag(name=tag, attributes=attrs, parent=self._current_tag)
+        new_tag = atom.tag.Tag(name=tag, attributes=attrs,
+                               parent=self._current_tag)
         if not self._current_tag.children:
             self._current_tag.children = []
         self._current_tag.children.append(new_tag)
@@ -418,9 +414,7 @@ class HTML(HTMLParser.HTMLParser):
             data: The tag's data.
 
         """
-        if self._debug:
-            self._debug_output.write("HTML: data - %s\n" % data)
-            self._debug_output.flush()
+        self._logger.debug("data - %s", data)
         if data:
             data = data.replace("\n", "")
             data = data.replace("\r", "")
@@ -438,15 +432,13 @@ class HTML(HTMLParser.HTMLParser):
             data: The comment.
 
         """
-        if self._debug:
-            self._debug_output.write("HTML: comment - %s\n" % data)
-            self._debug_output.flush()
+        self._logger.debug("comment - %s", data)
         if data:
             data = data.replace("\n", "")
             data = data.replace("\r", "")
             if len(data) > 0:
                 new_tag = atom.tag.Tag(name='comment', parent=self._current_tag,
-                              data=data)
+                                       data=data)
                 if not self._current_tag.children:
                     self._current_tag.children = []
                 self._current_tag.children.append(new_tag)
@@ -460,15 +452,13 @@ class HTML(HTMLParser.HTMLParser):
             decl: The declaration.
 
         """
-        if self._debug:
-            self._debug_output.write("HTML: declaration - %s\n" % decl)
-            self._debug_output.flush()
+        self._logger.debug("declaration - %s", decl)
         if decl:
             decl = decl.replace("\n", "")
             decl = decl.replace("\r", "")
             if len(decl) > 0:
-                new_tag = atom.tag.Tag(name='declaration', parent=self._current_tag,
-                              data=decl)
+                new_tag = atom.tag.Tag(name='declaration',
+                                       parent=self._current_tag, data=decl)
                 if not self._current_tag.children:
                     self._current_tag.children = []
                 self._current_tag.children.append(new_tag)
@@ -482,15 +472,13 @@ class HTML(HTMLParser.HTMLParser):
             data: The declaration.
 
         """
-        if self._debug:
-            self._debug_output.write("HTML: declaration - %s\n" % data)
-            self._debug_output.flush()
+        self._logger.debug("declaration - %s", data)
         if data:
             data = data.replace("\n", "")
             data = data.replace("\r", "")
             if len(data) > 0:
                 new_tag = atom.tag.Tag(name='unknown_declaration',
-                              parent=self._current_tag, data=data)
+                                       parent=self._current_tag, data=data)
                 if not self._current_tag.children:
                     self._current_tag.children = []
                 self._current_tag.children.append(new_tag)
@@ -527,6 +515,10 @@ class HTML(HTMLParser.HTMLParser):
             The index in the flat list of the next matching tag, or -1.
 
         """
+        self._logger.info("Find next tag")
+        self._logger.debug("type = %s, attributes = %s, data = %s, index = %i",
+                           str(tag_type), str(tag_attributes), str(tag_data),
+                           index)
         if tag_type:
             for i in range(index, self._number_of_tags):
                 data = self._parsed_data[i]
@@ -539,7 +531,9 @@ class HTML(HTMLParser.HTMLParser):
                         if data[2] != tag_data:
                             match = False
                     if match:
+                        self._logger.debug("Matching tag index: %i", i)
                         return i
+        self._logger.warning("Tag not found")
         return -1
 
     def get_tag(self, index):
@@ -553,9 +547,12 @@ class HTML(HTMLParser.HTMLParser):
             and tag content], or None on error.
 
         """
+        self._logger.info("Get tag")
+        self._logger.debug("Index: %i", index)
         if index >= 0 and index < len(self._parsed_data):
             return self._parsed_data[index]
         else:
+            self._logger.warning("Index out of range")
             return None
 
     def escape_text(self, text):
@@ -568,11 +565,11 @@ class HTML(HTMLParser.HTMLParser):
             The escaped text.
 
         """
-        if not text:
-            return None
-        text = cgi.escape(text, quote=True).encode('ascii',
-                                                   'xmlcharrefreplace')
-        return text.replace("'", "&#039;")
+        if text:
+            text = cgi.escape(text, quote=True).encode('ascii',
+                                                       'xmlcharrefreplace')
+            text = text.replace("'", "&#039;")
+        return text
 
     def unescape_text(self, text):
         """Replace HTML escape codes with special characters.
@@ -592,3 +589,4 @@ class HTML(HTMLParser.HTMLParser):
             text = text.replace("&nbsp;", " ")
             text = text.replace("&amp;", "&")
         return text
+

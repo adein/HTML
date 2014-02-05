@@ -15,7 +15,7 @@ import pytest
 import time
 
 import sys,os
-sys.path.append(os.path.realpath('../src'))
+sys.path.append(os.path.realpath('src'))
 import html.html
 import atom.tag
 
@@ -472,7 +472,7 @@ class TestHtml:
         tag_children = None
         tag_data = "my data"
         tag = atom.tag.Tag(name=tag_name, attributes=attrs, children=tag_children, data=tag_data)
-        self.h.store_tag(tag)
+        self.h._store_tag(tag)
         self.h._number_of_tags = len(self.h._parsed_data)
         assert len(self.h._parsed_data) == 1
         assert self.h._parsed_data[0][0] == tag_name
@@ -481,7 +481,7 @@ class TestHtml:
 
     def test_store_tag_tag_as_none(self):
         tag = None
-        self.h.store_tag(tag)
+        self.h._store_tag(tag)
         self.h._number_of_tags = len(self.h._parsed_data)
         assert len(self.h._parsed_data) == 0
 
@@ -501,7 +501,7 @@ class TestHtml:
         tag_children3 = [tag1, tag2]
         tag_data3 = "my data3"
         tag3 = atom.tag.Tag(name=tag_name3, attributes=attrs3, children=tag_children3, data=tag_data3)
-        self.h.store_tag(tag3)
+        self.h._store_tag(tag3)
         self.h._number_of_tags = len(self.h._parsed_data)
         assert len(self.h._parsed_data) == 3
         assert self.h._parsed_data[0][0] == tag_name3
@@ -524,7 +524,7 @@ class TestHtml:
         self.h._rate_limit_count = 3
         self.h._rate_limit_counter_time = current_time - datetime.timedelta(seconds=5)
         start_time = time.time()
-        assert self.h.check_rate_limiting(wait) == expected_result
+        assert self.h._check_rate_limiting(wait) == expected_result
         elapsed_time = time.time() - start_time
         assert elapsed_time < 1
 
@@ -538,7 +538,7 @@ class TestHtml:
         self.h._rate_limit_count = 3
         self.h._rate_limit_counter_time = current_time - datetime.timedelta(seconds=5)
         start_time = time.time()
-        assert self.h.check_rate_limiting(wait) == expected_result
+        assert self.h._check_rate_limiting(wait) == expected_result
         elapsed_time = time.time() - start_time
         assert elapsed_time > 30
         assert elapsed_time < 31
@@ -553,7 +553,7 @@ class TestHtml:
         self.h._rate_limit_count = 3
         self.h._rate_limit_counter_time = current_time - datetime.timedelta(seconds=5)
         start_time = time.time()
-        assert self.h.check_rate_limiting(wait) == expected_result
+        assert self.h._check_rate_limiting(wait) == expected_result
         elapsed_time = time.time() - start_time
         assert elapsed_time > 0
         assert elapsed_time < 1
@@ -568,7 +568,7 @@ class TestHtml:
         self.h._rate_limit_count = 5
         self.h._rate_limit_counter_time = current_time - datetime.timedelta(seconds=5)
         start_time = time.time()
-        assert self.h.check_rate_limiting(wait) == expected_result
+        assert self.h._check_rate_limiting(wait) == expected_result
         elapsed_time = time.time() - start_time
         assert elapsed_time > 54
         assert elapsed_time < 56
@@ -583,7 +583,7 @@ class TestHtml:
         self.h._rate_limit_count = 5
         self.h._rate_limit_counter_time = current_time - datetime.timedelta(seconds=61)
         start_time = time.time()
-        assert self.h.check_rate_limiting(wait) == expected_result
+        assert self.h._check_rate_limiting(wait) == expected_result
         elapsed_time = time.time() - start_time
         assert elapsed_time > 30
         assert elapsed_time < 31
@@ -598,7 +598,7 @@ class TestHtml:
         self.h._rate_limit_count = 5
         self.h._rate_limit_counter_time = current_time - datetime.timedelta(seconds=5)
         start_time = time.time()
-        assert self.h.check_rate_limiting(wait) == expected_result
+        assert self.h._check_rate_limiting(wait) == expected_result
         elapsed_time = time.time() - start_time
         assert elapsed_time > 0
         assert elapsed_time < 1
@@ -660,12 +660,12 @@ class TestHtml:
         assert self.h._parsed_data[2][0] == expected_tag_name2
 
     def test_parse_file_html_file_as_input(self):
-        filename = "files/test.html"
+        filename = "tests/files/test.html"
         expected_result = True
         assert self.h.parse_file(filename) == expected_result
 
     def test_parse_file_non_existant_file(self):
-        filename = "files/invalid_file.html"
+        filename = "tests/files/invalid_file.html"
         with pytest.raises(html.html.Error):
             self.h.parse_file(filename)
 
@@ -729,7 +729,7 @@ class TestHtml:
         tag3 = atom.tag.Tag(name="d", attributes=[('id', '1'), ('xy', 'z')], children=None, data="data3")
         tag4 = atom.tag.Tag(name="d", attributes=[('id', '2'), ('xy', 'w')], children=None, data="data4")
         tag2 = atom.tag.Tag(name="xyz", attributes=[('id', 'lga'), ('xy', 'z')], children=[tag1, tag3, tag4], data="data2")
-        self.h.store_tag(tag2)
+        self.h._store_tag(tag2)
         self.h._number_of_tags = len(self.h._parsed_data)
         assert self.h.find_first_tag(type, attr, data) == expected_result
 
@@ -743,7 +743,7 @@ class TestHtml:
         tag3 = atom.tag.Tag(name="d", attributes=[('id', '1'), ('xy', 'z')], children=None, data="data3")
         tag4 = atom.tag.Tag(name="d", attributes=[('id', '2'), ('xy', 'w')], children=None, data="data4")
         tag2 = atom.tag.Tag(name="xyz", attributes=[('id', 'lga'), ('xy', 'z')], children=[tag1, tag3, tag4], data="data2")
-        self.h.store_tag(tag2)
+        self.h._store_tag(tag2)
         self.h._number_of_tags = len(self.h._parsed_data)
         assert self.h.find_first_tag(type, attr, data) == expected_result
 
@@ -757,7 +757,7 @@ class TestHtml:
         tag3 = atom.tag.Tag(name="d", attributes=[('id', '1'), ('xy', 'z')], children=None, data="data3")
         tag4 = atom.tag.Tag(name="d", attributes=[('id', '2'), ('xy', 'w')], children=None, data="data4")
         tag2 = atom.tag.Tag(name="xyz", attributes=[('id', 'lga'), ('xy', 'z')], children=[tag1, tag3, tag4], data="data2")
-        self.h.store_tag(tag2)
+        self.h._store_tag(tag2)
         self.h._number_of_tags = len(self.h._parsed_data)
         assert self.h.find_first_tag(type, attr, data) == expected_result
 
@@ -771,7 +771,7 @@ class TestHtml:
         tag3 = atom.tag.Tag(name="d", attributes=[('id', '1'), ('xy', 'z')], children=None, data="data3")
         tag4 = atom.tag.Tag(name="d", attributes=[('id', '2'), ('xy', 'w')], children=None, data="data4")
         tag2 = atom.tag.Tag(name="xyz", attributes=[('id', 'lga'), ('xy', 'z')], children=[tag1, tag3, tag4], data="data2")
-        self.h.store_tag(tag2)
+        self.h._store_tag(tag2)
         self.h._number_of_tags = len(self.h._parsed_data)
         assert self.h.find_first_tag(type, attr, data) == expected_result
 
@@ -785,7 +785,7 @@ class TestHtml:
         tag3 = atom.tag.Tag(name="d", attributes=[('id', '1'), ('xy', 'z')], children=None, data="data3")
         tag4 = atom.tag.Tag(name="d", attributes=[('id', '2'), ('xy', 'w')], children=None, data="data4")
         tag2 = atom.tag.Tag(name="xyz", attributes=[('id', 'lga'), ('xy', 'z')], children=[tag1, tag3, tag4], data="data2")
-        self.h.store_tag(tag2)
+        self.h._store_tag(tag2)
         self.h._number_of_tags = len(self.h._parsed_data)
         assert self.h.find_first_tag(type, attr, data) == expected_result
 
@@ -799,7 +799,7 @@ class TestHtml:
         tag3 = atom.tag.Tag(name="d", attributes=[('id', '1'), ('xy', 'z')], children=None, data="data3")
         tag4 = atom.tag.Tag(name="d", attributes=[('id', '2'), ('xy', 'w')], children=None, data="data4")
         tag2 = atom.tag.Tag(name="xyz", attributes=[('id', 'lga'), ('xy', 'z')], children=[tag1, tag3, tag4], data="data2")
-        self.h.store_tag(tag2)
+        self.h._store_tag(tag2)
         self.h._number_of_tags = len(self.h._parsed_data)
         assert self.h.find_first_tag(type, attr, data) == expected_result
 
@@ -813,7 +813,7 @@ class TestHtml:
         tag3 = atom.tag.Tag(name="d", attributes=[('id', '1'), ('xy', 'z')], children=None, data="data3")
         tag4 = atom.tag.Tag(name="d", attributes=[('id', '2'), ('xy', 'w')], children=None, data="data4")
         tag2 = atom.tag.Tag(name="xyz", attributes=[('id', 'lga'), ('xy', 'z')], children=[tag1, tag3, tag4], data="data2")
-        self.h.store_tag(tag2)
+        self.h._store_tag(tag2)
         self.h._number_of_tags = len(self.h._parsed_data)
         assert self.h.find_first_tag(type, attr, data) == expected_result
 
@@ -827,7 +827,7 @@ class TestHtml:
         tag3 = atom.tag.Tag(name="d", attributes=[('id', '1'), ('xy', 'z')], children=None, data="data3")
         tag4 = atom.tag.Tag(name="d", attributes=[('id', '2'), ('xy', 'w')], children=None, data="data4")
         tag2 = atom.tag.Tag(name="xyz", attributes=[('id', 'lga'), ('xy', 'z')], children=[tag1, tag3, tag4], data="data2")
-        self.h.store_tag(tag2)
+        self.h._store_tag(tag2)
         self.h._number_of_tags = len(self.h._parsed_data)
         assert self.h.find_first_tag(type, attr, data) == expected_result
 
@@ -841,7 +841,7 @@ class TestHtml:
         tag3 = atom.tag.Tag(name="d", attributes=[('id', '1'), ('xy', 'z')], children=None, data="data3")
         tag4 = atom.tag.Tag(name="d", attributes=[('id', '2'), ('xy', 'w')], children=None, data="data4")
         tag2 = atom.tag.Tag(name="xyz", attributes=[('id', 'lga'), ('xy', 'z')], children=[tag1, tag3, tag4], data="data2")
-        self.h.store_tag(tag2)
+        self.h._store_tag(tag2)
         self.h._number_of_tags = len(self.h._parsed_data)
         assert self.h.find_first_tag(type, attr, data) == expected_result
 
@@ -855,7 +855,7 @@ class TestHtml:
         tag3 = atom.tag.Tag(name="d", attributes=[('id', '1'), ('xy', 'z')], children=None, data="data3")
         tag4 = atom.tag.Tag(name="d", attributes=[('id', '2'), ('xy', 'w')], children=None, data="data4")
         tag2 = atom.tag.Tag(name="xyz", attributes=[('id', 'lga'), ('xy', 'z')], children=[tag1, tag3, tag4], data="data2")
-        self.h.store_tag(tag2)
+        self.h._store_tag(tag2)
         self.h._number_of_tags = len(self.h._parsed_data)
         assert self.h.find_first_tag(type, attr, data) == expected_result
 
@@ -869,7 +869,7 @@ class TestHtml:
         tag3 = atom.tag.Tag(name="d", attributes=[('id', '1'), ('xy', 'z')], children=None, data="data3")
         tag4 = atom.tag.Tag(name="d", attributes=[('id', '2'), ('xy', 'w')], children=None, data="data4")
         tag2 = atom.tag.Tag(name="xyz", attributes=[('id', 'lga'), ('xy', 'z')], children=[tag1, tag3, tag4], data="data2")
-        self.h.store_tag(tag2)
+        self.h._store_tag(tag2)
         self.h._number_of_tags = len(self.h._parsed_data)
         assert self.h.find_first_tag(type, attr, data) == expected_result
 
@@ -884,7 +884,7 @@ class TestHtml:
         tag3 = atom.tag.Tag(name="d", attributes=[('id', '1'), ('xy', 'z')], children=None, data="data3")
         tag4 = atom.tag.Tag(name="d", attributes=[('id', '2'), ('xy', 'w')], children=None, data="data4")
         tag2 = atom.tag.Tag(name="xyz", attributes=[('id', 'lga'), ('xy', 'z')], children=[tag1, tag3, tag4], data="data2")
-        self.h.store_tag(tag2)
+        self.h._store_tag(tag2)
         self.h._number_of_tags = len(self.h._parsed_data)
         assert self.h.find_next_tag(type, attr, data, index) == expected_result
 
@@ -899,7 +899,7 @@ class TestHtml:
         tag3 = atom.tag.Tag(name="d", attributes=[('id', '1'), ('xy', 'z')], children=None, data="data3")
         tag4 = atom.tag.Tag(name="d", attributes=[('id', '1'), ('xy', 'z')], children=None, data="data4")
         tag2 = atom.tag.Tag(name="xyz", attributes=[('id', 'lga'), ('xy', 'z')], children=[tag1, tag3, tag4], data="data2")
-        self.h.store_tag(tag2)
+        self.h._store_tag(tag2)
         self.h._number_of_tags = len(self.h._parsed_data)
         assert self.h.find_next_tag(type, attr, data, index) == expected_result
 
@@ -914,7 +914,7 @@ class TestHtml:
         tag3 = atom.tag.Tag(name="d", attributes=[('id', '1'), ('xy', 'z')], children=None, data="data3")
         tag4 = atom.tag.Tag(name="d", attributes=[('id', '1'), ('xy', 'z')], children=None, data="data4")
         tag2 = atom.tag.Tag(name="xyz", attributes=[('id', 'lga'), ('xy', 'z')], children=[tag1, tag3, tag4], data="data2")
-        self.h.store_tag(tag2)
+        self.h._store_tag(tag2)
         self.h._number_of_tags = len(self.h._parsed_data)
         assert self.h.find_next_tag(type, attr, data, index) == expected_result
 
@@ -926,7 +926,7 @@ class TestHtml:
         tag3 = atom.tag.Tag(name="d", attributes=[('id', '1'), ('xy', 'z')], children=None, data="data3")
         tag4 = atom.tag.Tag(name="d", attributes=[('id', '1'), ('xy', 'z')], children=None, data="data4")
         tag2 = atom.tag.Tag(name="xyz", attributes=[('id', 'lga'), ('xy', 'z')], children=[tag1, tag3, tag4], data="data2")
-        self.h.store_tag(tag2)
+        self.h._store_tag(tag2)
         self.h._number_of_tags = len(self.h._parsed_data)
         assert self.h.get_tag(index) == expected_result
 
@@ -938,7 +938,7 @@ class TestHtml:
         tag3 = atom.tag.Tag(name="d", attributes=[('id', '1'), ('xy', 'z')], children=None, data="data3")
         tag4 = atom.tag.Tag(name="d", attributes=[('id', '1'), ('xy', 'z')], children=None, data="data4")
         tag2 = atom.tag.Tag(name="xyz", attributes=[('id', 'lga'), ('xy', 'z')], children=[tag1, tag3, tag4], data="data2")
-        self.h.store_tag(tag2)
+        self.h._store_tag(tag2)
         self.h._number_of_tags = len(self.h._parsed_data)
         assert self.h.get_tag(index) == expected_result
 
@@ -950,7 +950,7 @@ class TestHtml:
         tag3 = atom.tag.Tag(name="d", attributes=[('id', '1'), ('xy', 'z')], children=None, data="data3")
         tag4 = atom.tag.Tag(name="d", attributes=[('id', '1'), ('xy', 'z')], children=None, data="data4")
         tag2 = atom.tag.Tag(name="xyz", attributes=[('id', 'lga'), ('xy', 'z')], children=[tag1, tag3, tag4], data="data2")
-        self.h.store_tag(tag2)
+        self.h._store_tag(tag2)
         self.h._number_of_tags = len(self.h._parsed_data)
         assert self.h.get_tag(index) == expected_result
 
@@ -964,7 +964,7 @@ class TestHtml:
         tag3 = atom.tag.Tag(name="d", attributes=[('id', '1'), ('xy', 'z')], children=None, data="data3")
         tag4 = atom.tag.Tag(name="d", attributes=[('id', '1'), ('xy', 'z')], children=None, data="data4")
         tag2 = atom.tag.Tag(name=expected_name, attributes=expected_attributes, children=[tag1, tag3, tag4], data=expected_data)
-        self.h.store_tag(tag2)
+        self.h._store_tag(tag2)
         self.h._number_of_tags = len(self.h._parsed_data)
         newtag = self.h.get_tag(index)
         assert newtag[0] == expected_name
