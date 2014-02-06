@@ -565,10 +565,13 @@ class HTML(HTMLParser.HTMLParser):
             The escaped text.
 
         """
+        self._logger.info("Escape text")
+        self._logger.debug("Text: %s", text)
         if text:
             text = cgi.escape(text, quote=True).encode('ascii',
                                                        'xmlcharrefreplace')
             text = text.replace("'", "&#039;")
+        self._logger.debug("Escaped text: %s", text)
         return text
 
     def unescape_text(self, text):
@@ -581,6 +584,8 @@ class HTML(HTMLParser.HTMLParser):
             The unescaped text.
 
         """
+        self._logger.info("Unescape text")
+        self._logger.debug("Text: %s", text)
         if text:
             text = text.replace("&quot;", "\"")
             text = text.replace("&#039;", "'")
@@ -588,5 +593,6 @@ class HTML(HTMLParser.HTMLParser):
             text = text.replace("&gt;", ">")
             text = text.replace("&nbsp;", " ")
             text = text.replace("&amp;", "&")
+        self._logger.debug("Unescaped text: %s", text)
         return text
 
