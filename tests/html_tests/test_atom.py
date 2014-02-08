@@ -8,9 +8,9 @@
 # Imports
 import pytest
 
-import sys,os
-sys.path.append(os.path.realpath('../src'))
-import atom.tag
+import sys, os
+sys.path.append(os.path.realpath('html'))
+import atom
 
 
 class TestTag:
@@ -21,7 +21,7 @@ class TestTag:
         pass
 
     def test_empty_constructor(self):
-        t = atom.tag.Tag()
+        t = atom.Tag()
         assert t.name == None
         assert t.attributes == None
         assert t.data == None
@@ -33,9 +33,9 @@ class TestTag:
         n = "Name"
         a = [('name', 'val'), ('name2', 'val2')]
         d = "Data"
-        p = atom.tag.Tag()
-        c = [atom.tag.Tag(), atom.tag.Tag()]
-        t = atom.tag.Tag(name=n, attributes=a, data=d, parent=p, children=c)
+        p = atom.Tag()
+        c = [atom.Tag(), atom.Tag()]
+        t = atom.Tag(name=n, attributes=a, data=d, parent=p, children=c)
         assert t.name == n
         assert t.attributes == a
         assert t.data == d
