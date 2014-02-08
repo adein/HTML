@@ -29,7 +29,7 @@ import time
 import urllib2
 #from __future__ import with_statement # required if using Python 2.5
 
-import atom.tag
+import tag
 
 
 class Error(Exception):
@@ -85,7 +85,7 @@ class HTML(HTMLParser.HTMLParser):
         self._logger.addHandler(handler)
 
         self._parsed_data = []
-        self._root = atom.tag.Tag(name='root', children=[])
+        self._root = tag.Tag(name='root', children=[])
         self._current_tag = self._root
         self._number_of_tags = 0
         HTMLParser.HTMLParser.__init__(self)
@@ -304,7 +304,7 @@ class HTML(HTMLParser.HTMLParser):
         self._logger.info("Parsing HTML markup")
         # Start with the root of the document
         self._parsed_data = []
-        self._root = atom.tag.Tag(name='root', children=[])
+        self._root = tag.Tag(name='root', children=[])
         self._current_tag = self._root
         self._number_of_tags = 0
         self.reset()
@@ -360,9 +360,8 @@ class HTML(HTMLParser.HTMLParser):
 
         """
         self._logger.debug("start tag - %s / %s", tag, str(attrs))
-        new_tag = atom.tag.Tag(name=tag, attributes=attrs,
-                               parent=self._current_tag,
-                               data='')
+        new_tag = tag.Tag(name=tag, attributes=attrs, parent=self._current_tag,
+                          data='')
         self._logger.debug("parent tag: %s", str(self._current_tag.name))
         if not self._current_tag.children:
             self._current_tag.children = []
@@ -399,8 +398,7 @@ class HTML(HTMLParser.HTMLParser):
         self._logger.debug("start/end tag - %s / %s", tag, str(attrs))
         if tag == 'br':
             self._current_tag.string_concat_list.append(" ")
-        new_tag = atom.tag.Tag(name=tag, attributes=attrs,
-                               parent=self._current_tag)
+        new_tag = tag.Tag(name=tag, attributes=attrs, parent=self._current_tag)
         if not self._current_tag.children:
             self._current_tag.children = []
         self._current_tag.children.append(new_tag)
@@ -437,8 +435,8 @@ class HTML(HTMLParser.HTMLParser):
             data = data.replace("\n", "")
             data = data.replace("\r", "")
             if len(data) > 0:
-                new_tag = atom.tag.Tag(name='comment', parent=self._current_tag,
-                                       data=data)
+                new_tag = tag.Tag(name='comment', parent=self._current_tag,
+                                  data=data)
                 if not self._current_tag.children:
                     self._current_tag.children = []
                 self._current_tag.children.append(new_tag)
@@ -457,8 +455,8 @@ class HTML(HTMLParser.HTMLParser):
             decl = decl.replace("\n", "")
             decl = decl.replace("\r", "")
             if len(decl) > 0:
-                new_tag = atom.tag.Tag(name='declaration',
-                                       parent=self._current_tag, data=decl)
+                new_tag = tag.Tag(name='declaration', parent=self._current_tag,
+                                  data=decl)
                 if not self._current_tag.children:
                     self._current_tag.children = []
                 self._current_tag.children.append(new_tag)
@@ -477,8 +475,8 @@ class HTML(HTMLParser.HTMLParser):
             data = data.replace("\n", "")
             data = data.replace("\r", "")
             if len(data) > 0:
-                new_tag = atom.tag.Tag(name='unknown_declaration',
-                                       parent=self._current_tag, data=data)
+                new_tag = tag.Tag(name='unknown_declaration',
+                                  parent=self._current_tag, data=data)
                 if not self._current_tag.children:
                     self._current_tag.children = []
                 self._current_tag.children.append(new_tag)
