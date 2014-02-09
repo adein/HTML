@@ -531,7 +531,7 @@ class HTML(HTMLParser.HTMLParser):
                     if match:
                         self._logger.debug("Matching tag index: %i", i)
                         return i
-        self._logger.warning("Tag not found")
+        self._logger.debug("Tag not found")
         return -1
 
     def get_tag(self, index):
