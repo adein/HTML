@@ -25,6 +25,7 @@ import datetime
 import HTMLParser
 import logging
 import requests
+import sys
 import time
 import urllib2
 #from __future__ import with_statement # required if using Python 2.5
@@ -79,7 +80,7 @@ class HTML(HTMLParser.HTMLParser):
         else:
             formatter = logging.Formatter('%(asctime)s - %(levelname)s:'
                                           '%(name)s:%(message)s')
-            handler = logging.StreamHandler()
+            handler = logging.StreamHandler(stream=sys.stdout)
             handler.setLevel(logging.INFO)
             handler.setFormatter(formatter)
         self._logger.addHandler(handler)
@@ -546,7 +547,7 @@ class HTML(HTMLParser.HTMLParser):
                     if match:
                         self._logger.debug("Matching tag index: %i", i)
                         return i
-        self._logger.warning("Tag not found")
+        self._logger.debug("Tag not found")
         return -1
 
     def get_tag(self, index):
