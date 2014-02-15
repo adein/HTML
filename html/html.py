@@ -93,6 +93,43 @@ class HTML(HTMLParser.HTMLParser):
         self._logger.debug("rate_limit_counter_time = %i",
                            self._rate_limit_counter_time)
 
+    def get_url(self, url, form_data=None):
+        """Get data from a url.
+
+        Args:
+            form_data: A dictionary containing name/value pairs of form data.
+            url: The URL to get data from.
+
+        Returns:
+            The data from the URL as a string.
+
+        """
+        data = None
+        # If a url is specified, open it
+        if url and len(url) > 0:
+            try:
+                if form_data:
+                    self._logger.debug("Form data: %s", str(form_data))
+                    with contextlib.closing(requests.post(url,
+                                                      data=form_data)) as req:
+                        data = req.text
+                else:
+                    with contextlib.closing(urllib2.urlopen(url)) as html_file:
+                        data = html_file.read()
+                self._logger.debug("URL contents: %s", str(data))
+            except urllib2.URLError as excep:
+                raise Error("URL error opening the url: %s", str(excep))
+            except requests.ConnectionError as excep:
+                raise Error("Connection error opening the url: %s", str(excep))
+            except requests.HTTPError as excep:
+                raise Error("HTTP error opening the url: %s", str(excep))
+            except requests.Timeout as excep:
+                raise Error("Timeout error opening the url: %s", str(excep))
+            except requests.TooManyRedirects as excep:
+                raise Error("Too many redirects error opening the url: %s",
+                            str(excep))
+        return data
+
     def parse_file(self, file_name):
         """Parse an HTML file.
 
@@ -133,7 +170,6 @@ class HTML(HTMLParser.HTMLParser):
             True if the URL was parsed successfully.
 
         """
-        html_file = None
         # If a url is specified, open it
         if url and len(url) > 0:
             self._logger.info("Parsing the url: %s", str(url))
@@ -146,14 +182,7 @@ class HTML(HTMLParser.HTMLParser):
             current_time = datetime.datetime.now()
             self._logger.debug("current_time: %i", current_time)
 
-            try:
-                # Open the url
-                with contextlib.closing(urllib2.urlopen(url)) as html_file:
-                    # Read the markup text
-                    data = html_file.read()
-                    self._logger.debug("URL contents: %s", str(data))
-            except urllib2.URLError as excep:
-                raise Error("URL error opening the url: %s", str(excep))
+            data = self.get_url(url)
 
             # Update rate limit info
             self._update_rate_limiting(current_time)
@@ -190,21 +219,7 @@ class HTML(HTMLParser.HTMLParser):
             current_time = datetime.datetime.now()
             self._logger.debug("current_time: %i", current_time)
 
-            try:
-                # Make the POST request to the url
-                with contextlib.closing(requests.post(url,
-                                                      data=form_data)) as req:
-                    data = req.text
-                    self._logger.debug("URL contents: %s", str(data))
-            except requests.ConnectionError as excep:
-                raise Error("Connection error opening the url: %s", str(excep))
-            except requests.HTTPError as excep:
-                raise Error("HTTP error opening the url: %s", str(excep))
-            except requests.Timeout as excep:
-                raise Error("Timeout error opening the url: %s", str(excep))
-            except requests.TooManyRedirects as excep:
-                raise Error("Too many redirects error opening the url: %s",
-                            str(excep))
+            data = self.get_url(url, form_data)
 
             # Update rate limit info
             self._update_rate_limiting(current_time)
