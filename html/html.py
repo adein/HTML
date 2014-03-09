@@ -569,44 +569,38 @@ class HTML(HTMLParser.HTMLParser):
             self._logger.warning("Index out of range")
             return None
 
-    def escape_text(self, text):
-        """Replace special characters with HTML escape codes.
+def escape_text(text):
+    """Replace special characters with HTML escape codes.
 
-        Args:
-            text: The text to escape.
+    Args:
+        text: The text to escape.
 
-        Returns:
-            The escaped text.
+    Returns:
+        The escaped text.
 
-        """
-        self._logger.info("Escape text")
-        self._logger.debug("Text: %s", text)
-        if text:
-            text = cgi.escape(text, quote=True).encode('ascii',
-                                                       'xmlcharrefreplace')
-            text = text.replace("'", "&#039;")
-        self._logger.debug("Escaped text: %s", text)
-        return text
+    """
+    if text:
+        text = cgi.escape(text, quote=True).encode('ascii',
+                                                   'xmlcharrefreplace')
+        text = text.replace("'", "&#039;")
+    return text
 
-    def unescape_text(self, text):
-        """Replace HTML escape codes with special characters.
+def unescape_text(text):
+    """Replace HTML escape codes with special characters.
 
-        Args:
-            text: The text to unescape.
+    Args:
+        text: The text to unescape.
 
-        Returns:
-            The unescaped text.
+    Returns:
+        The unescaped text.
 
-        """
-        self._logger.info("Unescape text")
-        self._logger.debug("Text: %s", text)
-        if text:
-            text = text.replace("&quot;", "\"")
-            text = text.replace("&#039;", "'")
-            text = text.replace("&lt;", "<")
-            text = text.replace("&gt;", ">")
-            text = text.replace("&nbsp;", " ")
-            text = text.replace("&amp;", "&")
-        self._logger.debug("Unescaped text: %s", text)
-        return text
+    """
+    if text:
+        text = text.replace("&quot;", "\"")
+        text = text.replace("&#039;", "'")
+        text = text.replace("&lt;", "<")
+        text = text.replace("&gt;", ">")
+        text = text.replace("&nbsp;", " ")
+        text = text.replace("&amp;", "&")
+    return text
 
